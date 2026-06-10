@@ -236,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newNote = {
               id: Date.now(),
               title: call.args.title || '',
+              text: call.args.content || '',
               content: call.args.content || '',
               color: call.args.color || '#fecaca',
               date: new Date().toISOString()
@@ -262,7 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const note = data.notes.find(n => Number(n.id) === targetId);
             if (note) {
               if (call.args.title !== undefined) note.title = call.args.title;
-              if (call.args.content !== undefined) note.content = call.args.content;
+              if (call.args.content !== undefined) {
+                note.text = call.args.content;
+                note.content = call.args.content;
+              }
               chrome.storage.local.set({ notes: data.notes }, () => {
                 window.dispatchEvent(new Event('app_data_changed'));
                 resolve({ result: "Success" });
@@ -342,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Lấy context
     chrome.storage.local.get({ notes: [], schedules: [], clipboardHistory: [], weatherCache: null, timeStats: {} }, async (data) => {
       const clipText = data.clipboardHistory.slice(0, 10).map(c => c.text).join(' | ');
-      const notesText = data.notes.map(n => `[ID:${n.id}] [${n.title}] ${n.content}`).join('; ');
+      const notesText = data.notes.map(n => `[ID:${n.id}] [${n.title}] ${n.text || n.content || ''}`).join('; ');
       const schText = data.schedules.map(s => `[ID:${s.id}] [${s.date} ${s.time || ''}] ${s.title}: ${s.content || ''} (${s.recurrence})`).join('; ');
       
       // Get today's stats
