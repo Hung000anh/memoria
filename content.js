@@ -282,10 +282,10 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     color: ${txtColor} !important;
     animation: dauxanhPop 0.2s ease-out !important;
     border: 1px solid ${borderColor} !important;
-    resize: both !important;
     overflow: hidden !important;
     display: flex !important;
     flex-direction: column !important;
+    container-type: inline-size !important;
   `;
 
   if (!document.getElementById("dauxanh-translate-style")) {
@@ -297,16 +297,11 @@ function showTranslatePopup(rect, mouseX, mouseY) {
         display: flex;
         flex-direction: row-reverse;
         gap: 16px;
-        height: 100%;
       }
       .dauxanh-original, .dauxanh-translated {
         flex: 1;
-        overflow-y: auto;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
         word-break: break-word;
       }
-      .dauxanh-original::-webkit-scrollbar, .dauxanh-translated::-webkit-scrollbar { display: none !important; }
       .dauxanh-original {
         border-left: 1px dashed var(--dauxanh-border-dashed);
         padding-left: 16px;
@@ -368,7 +363,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   
   const contentArea = document.createElement("div");
   contentArea.id = "dauxanh-translate-content";
-  contentArea.style.cssText = "font-size: 14px; flex: 1; container-type: inline-size; overflow: hidden; line-height: 1.5; margin-bottom: 12px; min-height: 0;";
+  contentArea.style.cssText = "font-size: 14px; flex: 1; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; line-height: 1.5; margin-bottom: 12px; min-height: 0;";
   contentArea.innerHTML = `<div style="color: ${originalTxtColor}; font-style: italic; text-align: center; display: flex; align-items: center; justify-content: center; height: 100%;">Đang dịch...</div>`;
   translatePopup.appendChild(contentArea);
   
@@ -384,6 +379,34 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   
   footer.appendChild(saveBtn);
   translatePopup.appendChild(footer);
+
+  // Custom resize handle
+  const resizer = document.createElement("div");
+  resizer.style.cssText = "position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: se-resize; z-index: 10; display: flex; align-items: flex-end; justify-content: flex-end; padding: 4px;";
+  resizer.innerHTML = '<svg viewBox="0 0 10 10" style="width: 8px; height: 8px; fill: #9ca3af; opacity: 0.8;"><polygon points="10,0 10,10 0,10" /></svg>';
+  translatePopup.appendChild(resizer);
+
+  resizer.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = translatePopup.offsetWidth;
+    const startH = translatePopup.offsetHeight;
+
+    const onMouseMove = (moveEvent) => {
+      translatePopup.style.width = (startW + moveEvent.clientX - startX) + "px";
+      translatePopup.style.height = (startH + moveEvent.clientY - startY) + "px";
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  });
 
   let topPos = mouseY + 25;
   if (topPos + 250 > window.scrollY + window.innerHeight) {
