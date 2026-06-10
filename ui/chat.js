@@ -163,6 +163,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       },
       {
+        name: "delete_note",
+        description: "Xóa một ghi chú dựa trên ID.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            id: { type: "NUMBER", description: "ID của ghi chú cần xóa" }
+          },
+          required: ["id"]
+        }
+      },
+      {
+        name: "edit_note",
+        description: "Sửa nội dung hoặc tiêu đề của một ghi chú dựa trên ID.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            id: { type: "NUMBER", description: "ID của ghi chú cần sửa" },
+            title: { type: "STRING", description: "Tiêu đề mới" },
+            content: { type: "STRING", description: "Nội dung mới" }
+          },
+          required: ["id", "content"]
+        }
+      },
+      {
         name: "create_schedule",
         description: "Tạo một sự kiện/lịch trình mới.",
         parameters: {
@@ -221,6 +245,31 @@ document.addEventListener('DOMContentLoaded', () => {
               window.dispatchEvent(new Event('app_data_changed'));
               resolve({ result: "Success" });
             });
+          } else if (call.name === "delete_note") {
+            const targetId = Number(call.args.id);
+            const initialLength = data.notes.length;
+            data.notes = data.notes.filter(n => Number(n.id) !== targetId);
+            if (data.notes.length < initialLength) {
+              chrome.storage.local.set({ notes: data.notes }, () => {
+                window.dispatchEvent(new Event('app_data_changed'));
+                resolve({ result: "Success" });
+              });
+            } else {
+              resolve({ error: "Không tìm thấy ghi chú với ID cung cấp." });
+            }
+          } else if (call.name === "edit_note") {
+            const targetId = Number(call.args.id);
+            const note = data.notes.find(n => Number(n.id) === targetId);
+            if (note) {
+              if (call.args.title !== undefined) note.title = call.args.title;
+              if (call.args.content !== undefined) note.content = call.args.content;
+              chrome.storage.local.set({ notes: data.notes }, () => {
+                window.dispatchEvent(new Event('app_data_changed'));
+                resolve({ result: "Success" });
+              });
+            } else {
+              resolve({ error: "Không tìm thấy ghi chú với ID cung cấp." });
+            }
           } else if (call.name === "create_schedule") {
             const sch = {
               id: Date.now(),
@@ -293,8 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Lấy context
     chrome.storage.local.get({ notes: [], schedules: [], clipboardHistory: [], weatherCache: null, timeStats: {} }, async (data) => {
       const clipText = data.clipboardHistory.slice(0, 10).map(c => c.text).join(' | ');
-      const notesText = data.notes.map(n => `[${n.title}] ${n.content}`).join('; ');
-      const schText = data.schedules.map(s => `[${s.date} ${s.time || ''}] ${s.title}: ${s.content || ''} (${s.recurrence})`).join('; ');
+      const notesText = data.notes.map(n => `[ID:${n.id}] [${n.title}] ${n.content}`).join('; ');
+      const schText = data.schedules.map(s => `[ID:${s.id}] [${s.date} ${s.time || ''}] ${s.title}: ${s.content || ''} (${s.recurrence})`).join('; ');
       
       // Get today's stats
       let statsText = 'Chưa có';
@@ -337,7 +386,7 @@ DỮ LIỆU HIỆN TẠI CỦA NGƯỜI DÙNG:
 - 10 mục Clipboard gần nhất: ${clipText || 'Không có'}
 
 MỤC TIÊU CỦA BẠN:
-- Hãy gọi tool nếu người dùng yêu cầu thao tác thêm dữ liệu mới hoặc tra cứu thời tiết thành phố khác.
+- Hãy gọi tool nếu người dùng yêu cầu thao tác (thêm, sửa, xóa) dữ liệu hoặc tra cứu thời tiết thành phố khác.
 - Nếu người dùng hỏi về thông tin đã có, hãy trả lời dựa trên dữ liệu hiện tại ở trên.
 - Trả lời ngắn gọn, thân thiện bằng tiếng Việt.
       `;
