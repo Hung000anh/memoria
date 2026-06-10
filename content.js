@@ -277,7 +277,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     box-shadow: 0 4px 20px rgba(0,0,0,0.25) !important;
     width: 500px !important;
     min-width: 250px !important;
-    min-height: 180px !important;
+    min-height: 100px !important;
     max-width: 90vw !important;
     max-height: 90vh !important;
     padding: 16px !important;
