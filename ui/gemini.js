@@ -83,7 +83,19 @@ class GeminiService {
     // Sử dụng gemini-3.1-flash-lite theo yêu cầu
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
     
-    const body = { contents: messages };
+    const sanitizedMessages = messages.map(msg => {
+      let role = msg.role === 'ai' ? 'model' : msg.role;
+      const sanitized = { role: role };
+      if (msg.parts) {
+        sanitized.parts = msg.parts;
+      } else if (msg.text) {
+        sanitized.parts = [{ text: msg.text }];
+      } else {
+        sanitized.parts = [{ text: '' }];
+      }
+      return sanitized;
+    });
+    const body = { contents: sanitizedMessages };
     
     if (systemInstruction) {
       body.systemInstruction = {
