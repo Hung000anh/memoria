@@ -380,35 +380,49 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   footer.appendChild(saveBtn);
   translatePopup.appendChild(footer);
 
-  // Custom resize handle
-  const resizer = document.createElement("div");
-  resizer.style.cssText = "position: absolute; right: 0; bottom: 0; width: 30px; height: 30px; cursor: se-resize; z-index: 10; display: flex; align-items: flex-end; justify-content: flex-end; padding: 6px;";
-  resizer.innerHTML = '<svg viewBox="0 0 10 10" style="width: 14px; height: 14px; fill: #9ca3af; opacity: 1;"><polygon points="10,0 10,10 0,10" /></svg>';
-  translatePopup.appendChild(resizer);
+  // Custom resize handles
+  const createResizer = (cursor, type) => {
+    const r = document.createElement("div");
+    let css = `position: absolute; cursor: ${cursor}; z-index: 10;`;
+    if (type === 'right') css += 'right: -4px; top: 0; width: 8px; height: 100%;';
+    if (type === 'bottom') css += 'left: 0; bottom: -4px; width: 100%; height: 8px;';
+    if (type === 'corner') {
+      css += 'right: 0; bottom: 0; width: 24px; height: 24px; z-index: 11; display: flex; align-items: flex-end; justify-content: flex-end; padding: 4px;';
+      r.innerHTML = '<svg viewBox="0 0 10 10" style="width: 12px; height: 12px; fill: #9ca3af; opacity: 1;"><polygon points="10,0 10,10 0,10" /></svg>';
+    }
+    r.style.cssText = css;
+    translatePopup.appendChild(r);
 
-  resizer.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startW = translatePopup.offsetWidth;
-    const startH = translatePopup.offsetHeight;
+    r.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startW = translatePopup.offsetWidth;
+      const startH = translatePopup.offsetHeight;
 
-    const onMouseMove = (moveEvent) => {
-      const newWidth = startW + moveEvent.clientX - startX;
-      const newHeight = startH + moveEvent.clientY - startY;
-      translatePopup.style.setProperty("width", newWidth + "px", "important");
-      translatePopup.style.setProperty("height", newHeight + "px", "important");
-    };
+      const onMouseMove = (moveEvent) => {
+        if (type === 'right' || type === 'corner') {
+          translatePopup.style.setProperty("width", (startW + moveEvent.clientX - startX) + "px", "important");
+        }
+        if (type === 'bottom' || type === 'corner') {
+          translatePopup.style.setProperty("height", (startH + moveEvent.clientY - startY) + "px", "important");
+        }
+      };
 
-    const onMouseUp = () => {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    };
+      const onMouseUp = () => {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+      };
 
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  });
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    });
+  };
+
+  createResizer('e-resize', 'right');
+  createResizer('s-resize', 'bottom');
+  createResizer('se-resize', 'corner');
 
   let topPos = mouseY + 25;
   if (topPos + 250 > window.scrollY + window.innerHeight) {
