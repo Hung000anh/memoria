@@ -304,7 +304,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
       #dauxanh-translate-content::-webkit-scrollbar { display: none !important; }
       .dauxanh-translation-grid {
         display: flex !important;
-        flex-direction: row-reverse !important;
+        flex-direction: row !important;
         gap: 16px !important;
       }
       .dauxanh-stacked .dauxanh-translation-grid {
@@ -314,15 +314,15 @@ function showTranslatePopup(rect, mouseX, mouseY) {
         flex: 1 !important;
         word-break: break-word !important;
       }
-      .dauxanh-original {
+      .dauxanh-translated {
         border-left: 1px dashed var(--dauxanh-border-dashed) !important;
         padding-left: 16px !important;
       }
-      .dauxanh-stacked .dauxanh-original {
+      .dauxanh-stacked .dauxanh-translated {
         border-left: none !important;
         padding-left: 0 !important;
-        border-bottom: 1px dashed var(--dauxanh-border-dashed) !important;
-        padding-bottom: 12px !important;
+        border-top: 1px dashed var(--dauxanh-border-dashed) !important;
+        padding-top: 12px !important;
       }
     `;
     document.head.appendChild(st);
