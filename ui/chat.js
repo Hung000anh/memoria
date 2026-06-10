@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  async function processChatRequest(userText) {
+  async function processChatRequest(userText, ts) {
     // Typing indicator
     const typingDiv = document.createElement('div');
     typingDiv.className = 'msg ai-msg';
@@ -415,7 +415,7 @@ MỤC TIÊU CỦA BẠN:
     chatInput.value = '';
     chatInput.style.height = 'auto';
 
-    processChatRequest(text);
+    processChatRequest(text, ts);
   }
 
   if (sendChatBtn) sendChatBtn.addEventListener('click', handleChat);
