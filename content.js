@@ -270,7 +270,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     background: ${bg} !important;
     border-radius: 12px !important;
     box-shadow: 0 4px 20px rgba(0,0,0,0.25) !important;
-    width: 500px;
+    width: 500px !important;
     min-width: 250px !important;
     min-height: 180px !important;
     max-width: 90vw !important;
@@ -382,8 +382,8 @@ function showTranslatePopup(rect, mouseX, mouseY) {
 
   // Custom resize handle
   const resizer = document.createElement("div");
-  resizer.style.cssText = "position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: se-resize; z-index: 10; display: flex; align-items: flex-end; justify-content: flex-end; padding: 4px;";
-  resizer.innerHTML = '<svg viewBox="0 0 10 10" style="width: 8px; height: 8px; fill: #9ca3af; opacity: 0.8;"><polygon points="10,0 10,10 0,10" /></svg>';
+  resizer.style.cssText = "position: absolute; right: 0; bottom: 0; width: 30px; height: 30px; cursor: se-resize; z-index: 10; display: flex; align-items: flex-end; justify-content: flex-end; padding: 6px;";
+  resizer.innerHTML = '<svg viewBox="0 0 10 10" style="width: 14px; height: 14px; fill: #9ca3af; opacity: 1;"><polygon points="10,0 10,10 0,10" /></svg>';
   translatePopup.appendChild(resizer);
 
   resizer.addEventListener("mousedown", (e) => {
@@ -395,8 +395,10 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     const startH = translatePopup.offsetHeight;
 
     const onMouseMove = (moveEvent) => {
-      translatePopup.style.width = (startW + moveEvent.clientX - startX) + "px";
-      translatePopup.style.height = (startH + moveEvent.clientY - startY) + "px";
+      const newWidth = startW + moveEvent.clientX - startX;
+      const newHeight = startH + moveEvent.clientY - startY;
+      translatePopup.style.setProperty("width", newWidth + "px", "important");
+      translatePopup.style.setProperty("height", newHeight + "px", "important");
     };
 
     const onMouseUp = () => {
