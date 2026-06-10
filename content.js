@@ -204,19 +204,19 @@ document.addEventListener("mouseup", (e) => {
     
     const iconImg = document.createElement("img");
     iconImg.src = chrome.runtime.getURL("icons/icon48.png");
-    iconImg.style.cssText = "width: 18px; height: 18px; border-radius: 50%;";
+    iconImg.style.cssText = "width: 18px; height: 18px; border-radius: 50%; object-fit: contain; margin: 0; padding: 0; display: block;";
     translateIconContainer.appendChild(iconImg);
     
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
     
-    translateIconContainer.style.top = (window.scrollY + rect.bottom + 5) + 'px';
-    translateIconContainer.style.left = (window.scrollX + rect.right - 14) + 'px';
+    translateIconContainer.style.top = (e.pageY + 12) + 'px';
+    translateIconContainer.style.left = (e.pageX + 8) + 'px';
     
     translateIconContainer.onclick = async (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
-      showTranslatePopup(rect);
+      showTranslatePopup(rect, e.pageX, e.pageY);
     };
     
     document.body.appendChild(translateIconContainer);
@@ -225,7 +225,7 @@ document.addEventListener("mouseup", (e) => {
   }
 });
 
-function showTranslatePopup(rect) {
+function showTranslatePopup(rect, mouseX, mouseY) {
   if (translateIconContainer) translateIconContainer.style.display = 'none';
   if (translatePopup) document.body.removeChild(translatePopup);
 
@@ -276,12 +276,12 @@ function showTranslatePopup(rect) {
   footer.appendChild(saveBtn);
   translatePopup.appendChild(footer);
 
-  let topPos = window.scrollY + rect.bottom + 10;
+  let topPos = mouseY + 25;
   if (topPos + 250 > window.scrollY + window.innerHeight) {
-    topPos = window.scrollY + rect.top - 260; 
+    topPos = mouseY - 260; 
   }
   translatePopup.style.top = topPos + 'px';
-  translatePopup.style.left = Math.max(10, window.scrollX + rect.left) + 'px';
+  translatePopup.style.left = Math.max(10, mouseX - 160) + 'px';
   
   document.body.appendChild(translatePopup);
 
