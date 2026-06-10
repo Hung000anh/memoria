@@ -266,23 +266,25 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   translatePopup = document.createElement("div");
   translatePopup.id = "dauxanh-translate-popup";
   translatePopup.style.cssText = `
-    position: absolute;
-    background: ${bg};
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-    width: 500px;
-    min-width: 250px;
-    min-height: 180px;
-    padding: 16px;
-    z-index: 2147483647;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    color: ${txtColor};
-    animation: dauxanhPop 0.2s ease-out;
-    border: 1px solid ${borderColor};
-    resize: both;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    position: absolute !important;
+    background: ${bg} !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25) !important;
+    width: 500px !important;
+    min-width: 250px !important;
+    min-height: 180px !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+    padding: 16px !important;
+    z-index: 2147483647 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+    color: ${txtColor} !important;
+    animation: dauxanhPop 0.2s ease-out !important;
+    border: 1px solid ${borderColor} !important;
+    resize: both !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
   `;
 
   if (!document.getElementById("dauxanh-translate-style")) {
