@@ -58,6 +58,29 @@
       </div>
       <p id="aiSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
     </div>
+
+    <div class="card">
+      <h2>Cài đặt Dịch thuật</h2>
+      <p class="help-text" style="margin-bottom:12px;">Chọn ngôn ngữ đích mà bạn muốn dịch sang khi bôi đen văn bản.</p>
+      
+      <div style="margin-bottom: 16px;">
+        <label for="translateTargetLang" style="display: block; font-size: 13px; margin-bottom: 4px;">Ngôn ngữ đích:</label>
+        <select id="translateTargetLang" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">Tiếng Anh</option>
+          <option value="zh-CN">Tiếng Trung (Giản thể)</option>
+          <option value="ja">Tiếng Nhật</option>
+          <option value="ko">Tiếng Hàn</option>
+          <option value="fr">Tiếng Pháp</option>
+          <option value="de">Tiếng Đức</option>
+        </select>
+      </div>
+
+      <div style="display: flex;">
+        <button id="saveTranslateSettingsBtn" style="flex: 1;">Lưu Cài đặt Dịch</button>
+      </div>
+      <p id="translateSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
+    </div>
   </div>
   <script src="utils.js"></script>
   <script src="settings.js"></script>
