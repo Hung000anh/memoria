@@ -171,6 +171,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 let dauxanhSelectedText = "";
 let translateIconContainer = null;
 let translatePopup = null;
+let dauxanhIsDarkMode = false;
+
+chrome.storage.local.get({ isDarkMode: false }, data => dauxanhIsDarkMode = data.isDarkMode);
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.isDarkMode) {
+    dauxanhIsDarkMode = changes.isDarkMode.newValue;
+  }
+});
 
 function removeTranslateUI() {
   if (translateIconContainer && document.body.contains(translateIconContainer)) {
@@ -251,20 +259,34 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   if (translateIconContainer) translateIconContainer.style.display = 'none';
   if (translatePopup) document.body.removeChild(translatePopup);
 
+  const bg = dauxanhIsDarkMode ? "#1f2937" : "white";
+  const txtColor = dauxanhIsDarkMode ? "#f3f4f6" : "#333";
+  const borderColor = dauxanhIsDarkMode ? "#374151" : "#e5e7eb";
+
   translatePopup = document.createElement("div");
+  translatePopup.id = "dauxanh-translate-popup";
   translatePopup.style.cssText = `
     position: absolute;
-    background: white;
+    background: ${bg};
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
     width: 320px;
     padding: 16px;
     z-index: 2147483647;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    color: #333;
+    color: ${txtColor};
     animation: dauxanhPop 0.2s ease-out;
-    border: 1px solid #e5e7eb;
+    border: 1px solid ${borderColor};
   `;
+
+  if (!document.getElementById("dauxanh-translate-style")) {
+    const st = document.createElement("style");
+    st.id = "dauxanh-translate-style";
+    st.textContent = `
+      #dauxanh-translate-content::-webkit-scrollbar { display: none !important; }
+    `;
+    document.head.appendChild(st);
+  }
   
   const header = document.createElement("div");
   header.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;";
@@ -281,13 +303,17 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   header.appendChild(closeBtn);
   translatePopup.appendChild(header);
 
+  const originalTxtColor = dauxanhIsDarkMode ? "#9ca3af" : "#6b7280";
+  
   const contentArea = document.createElement("div");
-  contentArea.style.cssText = "font-size: 14px; max-height: 200px; overflow-y: auto; line-height: 1.5; margin-bottom: 12px;";
-  contentArea.innerHTML = '<div style="color: #6b7280; font-style: italic; text-align: center;">Đang dịch...</div>';
+  contentArea.id = "dauxanh-translate-content";
+  contentArea.style.cssText = "font-size: 14px; max-height: 200px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; line-height: 1.5; margin-bottom: 12px;";
+  contentArea.innerHTML = `<div style="color: ${originalTxtColor}; font-style: italic; text-align: center;">Đang dịch...</div>`;
   translatePopup.appendChild(contentArea);
   
+  const dividerColor = dauxanhIsDarkMode ? "#374151" : "#f3f4f6";
   const footer = document.createElement("div");
-  footer.style.cssText = "display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #f3f4f6; padding-top: 12px;";
+  footer.style.cssText = `display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid ${dividerColor}; padding-top: 12px;`;
   
   const saveBtn = document.createElement("button");
   saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Lưu Ghi chú';
@@ -309,9 +335,11 @@ function showTranslatePopup(rect, mouseX, mouseY) {
 
   chrome.runtime.sendMessage({ action: "translate_text", text: dauxanhSelectedText }, (response) => {
     if (response && response.success) {
+      const translatedTxtColor = dauxanhIsDarkMode ? "#f9fafb" : "#111827";
+      const borderDashed = dauxanhIsDarkMode ? "#4b5563" : "#e5e7eb";
       contentArea.innerHTML = `
-        <div style="color: #6b7280; margin-bottom: 6px; font-size: 12px; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px;">${dauxanhSelectedText}</div>
-        <div style="color: #111827;">${response.translatedText}</div>
+        <div style="color: ${originalTxtColor}; margin-bottom: 6px; font-size: 12px; border-bottom: 1px dashed ${borderDashed}; padding-bottom: 6px;">${dauxanhSelectedText}</div>
+        <div style="color: ${translatedTxtColor};">${response.translatedText}</div>
       `;
       saveBtn.style.display = "inline-flex";
       saveBtn.onclick = () => {
