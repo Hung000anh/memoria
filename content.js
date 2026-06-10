@@ -203,7 +203,12 @@ document.addEventListener("mouseup", (e) => {
     `;
     
     const iconImg = document.createElement("img");
-    iconImg.src = chrome.runtime.getURL("icons/icon48.png");
+    try {
+      iconImg.src = chrome.runtime.getURL("icons/icon48.png");
+    } catch (e) {
+      console.warn("Memoria: Vui lòng tải lại trang (F5) để sử dụng tính năng sau khi cập nhật Extension.");
+      return;
+    }
     iconImg.style.cssText = "width: 18px; height: 18px; border-radius: 50%; object-fit: contain; margin: 0; padding: 0; display: block;";
     translateIconContainer.appendChild(iconImg);
     
