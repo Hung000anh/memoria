@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Memoria",
   "version": "1.0",
-  "description": "Tiện ích cá nhân với Ghi chú, Lịch trình, Clipboard & AI Chatbot",
+  "description": "Memoria - Trợ lý ảo toàn diện với AI, Quản lý Lịch trình, Ghi chú và Clipboard thông minh",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
