@@ -289,7 +289,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   }
   
   const header = document.createElement("div");
-  header.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;";
+  header.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: grab;";
   
   const title = document.createElement("div");
   title.innerHTML = `<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px; line-height:1;"><img src="${chrome.runtime.getURL('icons/icon48.png')}" style="width:16px;height:16px;border-radius:50%; display:block; margin:0; padding:0; object-fit:contain;"> Dịch thuật</span>`;
@@ -302,6 +302,29 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   header.appendChild(title);
   header.appendChild(closeBtn);
   translatePopup.appendChild(header);
+
+  header.addEventListener("mousedown", (e) => {
+    if (e.target === closeBtn) return;
+    header.style.cursor = "grabbing";
+    const rect = translatePopup.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    e.preventDefault();
+
+    const onMouseMove = (moveEvent) => {
+      translatePopup.style.left = (moveEvent.clientX + window.scrollX - offsetX) + "px";
+      translatePopup.style.top = (moveEvent.clientY + window.scrollY - offsetY) + "px";
+    };
+
+    const onMouseUp = () => {
+      header.style.cursor = "grab";
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  });
 
   const originalTxtColor = dauxanhIsDarkMode ? "#9ca3af" : "#6b7280";
   
