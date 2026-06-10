@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cài đặt Memoria</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Cài đặt Memoria</h1>
+    <p class="subtitle">Quản lý Gemini API Keys để Chatbot hoạt động.</p>
+    
+    <div class="card">
+      <h2>Thêm API Key mới</h2>
+      <div class="input-group">
+        <input type="text" id="newKeyInput" placeholder="Nhập Gemini API Key (AIzaSy...)" autocomplete="off">
+        <button id="addKeyBtn">Thêm Key</button>
+      </div>
+      <p class="help-text">Nhập nhiều key để hệ thống tự động xoay vòng nếu có key bị lỗi hoặc hết hạn ngạch.</p>
+    </div>
+
+    <div class="card">
+      <h2>Danh sách Key đã lưu</h2>
+      <ul id="keyList" class="key-list">
+        <!-- Danh sách render bằng JS -->
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Cài đặt AI Chủ động</h2>
+      <p class="help-text" style="margin-bottom:12px;">Cấu hình để AI tự động phân tích ngữ cảnh (lịch trình, thời tiết) và gửi lời nhắc cho bạn.</p>
+      
+      <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="aiEnabled" checked>
+        <label for="aiEnabled" style="font-weight: 500; font-size: 14px; cursor: pointer;">Bật AI chủ động</label>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <label for="aiPeriod" style="display: block; font-size: 13px; margin-bottom: 4px;">Chu kỳ hoạt động (phút):</label>
+        <input type="number" id="aiPeriod" min="10" max="1440" value="60" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+        <div style="flex: 1;">
+          <label for="aiSleepStart" style="display: block; font-size: 13px; margin-bottom: 4px;">Ngủ đông từ (Giờ):</label>
+          <input type="number" id="aiSleepStart" min="0" max="23" value="23" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+        </div>
+        <div style="flex: 1;">
+          <label for="aiSleepEnd" style="display: block; font-size: 13px; margin-bottom: 4px;">Đến (Giờ):</label>
+          <input type="number" id="aiSleepEnd" min="0" max="23" value="6" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 16px;">
+        <button id="saveAiSettingsBtn" style="flex: 2;">Lưu Cài đặt AI</button>
+        <button id="testAiBtn" style="flex: 1; background-color: var(--secondary); color: white;">Test thử ngay</button>
+      </div>
+      <p id="aiSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
+    </div>
+  </div>
+  <script src="utils.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>
