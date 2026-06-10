@@ -172,6 +172,7 @@ let dauxanhSelectedText = "";
 let translateIconContainer = null;
 let translatePopup = null;
 let dauxanhIsDarkMode = false;
+let dauxanhResizeObserver = null;
 
 chrome.storage.local.get({ isDarkMode: false }, data => dauxanhIsDarkMode = data.isDarkMode);
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -181,6 +182,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 function removeTranslateUI() {
+  if (dauxanhResizeObserver) {
+    dauxanhResizeObserver.disconnect();
+    dauxanhResizeObserver = null;
+  }
   if (translateIconContainer && document.body.contains(translateIconContainer)) {
     document.body.removeChild(translateIconContainer);
   }
@@ -298,6 +303,9 @@ function showTranslatePopup(rect, mouseX, mouseY) {
         flex-direction: row-reverse;
         gap: 16px;
       }
+      .dauxanh-stacked .dauxanh-translation-grid {
+        flex-direction: column;
+      }
       .dauxanh-original, .dauxanh-translated {
         flex: 1;
         word-break: break-word;
@@ -306,16 +314,11 @@ function showTranslatePopup(rect, mouseX, mouseY) {
         border-left: 1px dashed var(--dauxanh-border-dashed);
         padding-left: 16px;
       }
-      @container (max-width: 400px) {
-        .dauxanh-translation-grid {
-          flex-direction: column;
-        }
-        .dauxanh-original {
-          border-left: none;
-          padding-left: 0;
-          border-bottom: 1px dashed var(--dauxanh-border-dashed);
-          padding-bottom: 12px;
-        }
+      .dauxanh-stacked .dauxanh-original {
+        border-left: none;
+        padding-left: 0;
+        border-bottom: 1px dashed var(--dauxanh-border-dashed);
+        padding-bottom: 12px;
       }
     `;
     document.head.appendChild(st);
@@ -432,6 +435,17 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   translatePopup.style.left = Math.max(10, mouseX - 160) + 'px';
   
   document.body.appendChild(translatePopup);
+
+  dauxanhResizeObserver = new ResizeObserver(entries => {
+    for (let entry of entries) {
+      if (entry.contentRect.width < 400) {
+        translatePopup.classList.add('dauxanh-stacked');
+      } else {
+        translatePopup.classList.remove('dauxanh-stacked');
+      }
+    }
+  });
+  dauxanhResizeObserver.observe(translatePopup);
 
   chrome.runtime.sendMessage({ action: "translate_text", text: dauxanhSelectedText }, (response) => {
     if (response && response.success) {
