@@ -270,13 +270,19 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     background: ${bg};
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-    width: 320px;
+    width: 500px;
+    min-width: 250px;
+    min-height: 180px;
     padding: 16px;
     z-index: 2147483647;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     color: ${txtColor};
     animation: dauxanhPop 0.2s ease-out;
     border: 1px solid ${borderColor};
+    resize: both;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   `;
 
   if (!document.getElementById("dauxanh-translate-style")) {
@@ -284,12 +290,41 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     st.id = "dauxanh-translate-style";
     st.textContent = `
       #dauxanh-translate-content::-webkit-scrollbar { display: none !important; }
+      .dauxanh-translation-grid {
+        display: flex;
+        flex-direction: row-reverse;
+        gap: 16px;
+        height: 100%;
+      }
+      .dauxanh-original, .dauxanh-translated {
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        word-break: break-word;
+      }
+      .dauxanh-original::-webkit-scrollbar, .dauxanh-translated::-webkit-scrollbar { display: none !important; }
+      .dauxanh-original {
+        border-left: 1px dashed var(--dauxanh-border-dashed);
+        padding-left: 16px;
+      }
+      @container (max-width: 400px) {
+        .dauxanh-translation-grid {
+          flex-direction: column;
+        }
+        .dauxanh-original {
+          border-left: none;
+          padding-left: 0;
+          border-bottom: 1px dashed var(--dauxanh-border-dashed);
+          padding-bottom: 12px;
+        }
+      }
     `;
     document.head.appendChild(st);
   }
   
   const header = document.createElement("div");
-  header.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: grab;";
+  header.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: grab; flex-shrink: 0;";
   
   const title = document.createElement("div");
   title.innerHTML = `<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px; line-height:1;"><img src="${chrome.runtime.getURL('icons/icon48.png')}" style="width:16px;height:16px;border-radius:50%; display:block; margin:0; padding:0; object-fit:contain;"> Dịch thuật</span>`;
@@ -330,13 +365,13 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   
   const contentArea = document.createElement("div");
   contentArea.id = "dauxanh-translate-content";
-  contentArea.style.cssText = "font-size: 14px; max-height: 200px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; line-height: 1.5; margin-bottom: 12px;";
-  contentArea.innerHTML = `<div style="color: ${originalTxtColor}; font-style: italic; text-align: center;">Đang dịch...</div>`;
+  contentArea.style.cssText = "font-size: 14px; flex: 1; container-type: inline-size; overflow: hidden; line-height: 1.5; margin-bottom: 12px; min-height: 0;";
+  contentArea.innerHTML = `<div style="color: ${originalTxtColor}; font-style: italic; text-align: center; display: flex; align-items: center; justify-content: center; height: 100%;">Đang dịch...</div>`;
   translatePopup.appendChild(contentArea);
   
   const dividerColor = dauxanhIsDarkMode ? "#374151" : "#f3f4f6";
   const footer = document.createElement("div");
-  footer.style.cssText = `display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid ${dividerColor}; padding-top: 12px;`;
+  footer.style.cssText = `display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid ${dividerColor}; padding-top: 12px; flex-shrink: 0;`;
   
   const saveBtn = document.createElement("button");
   saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Lưu Ghi chú';
@@ -360,9 +395,18 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     if (response && response.success) {
       const translatedTxtColor = dauxanhIsDarkMode ? "#f9fafb" : "#111827";
       const borderDashed = dauxanhIsDarkMode ? "#4b5563" : "#e5e7eb";
+      translatePopup.style.setProperty('--dauxanh-border-dashed', borderDashed);
       contentArea.innerHTML = `
-        <div style="color: ${originalTxtColor}; margin-bottom: 6px; font-size: 12px; border-bottom: 1px dashed ${borderDashed}; padding-bottom: 6px;">${dauxanhSelectedText}</div>
-        <div style="color: ${translatedTxtColor};">${response.translatedText}</div>
+        <div class="dauxanh-translation-grid">
+          <div class="dauxanh-original">
+            <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${originalTxtColor};">Bản gốc</div>
+            <div style="color: ${originalTxtColor};">${dauxanhSelectedText}</div>
+          </div>
+          <div class="dauxanh-translated">
+            <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${translatedTxtColor};">Bản dịch</div>
+            <div style="color: ${translatedTxtColor};">${response.translatedText}</div>
+          </div>
+        </div>
       `;
       saveBtn.style.display = "inline-flex";
       saveBtn.onclick = () => {
