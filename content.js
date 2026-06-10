@@ -297,6 +297,10 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     const st = document.createElement("style");
     st.id = "dauxanh-translate-style";
     st.textContent = `
+      @keyframes dauxanhPop {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
       #dauxanh-translate-content::-webkit-scrollbar { display: none !important; }
       .dauxanh-translation-grid {
         display: flex !important;
@@ -490,16 +494,4 @@ function showTranslatePopup(rect, mouseX, mouseY) {
       contentArea.innerHTML = `<div style="color: #ef4444;">Lỗi dịch thuật: ${response ? response.error : 'Không phản hồi'}</div>`;
     }
   });
-}
-
-if (!document.getElementById('dauxanh-translate-style')) {
-  const style = document.createElement('style');
-  style.id = 'dauxanh-translate-style';
-  style.textContent = `
-    @keyframes dauxanhPop {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-  `;
-  document.head.appendChild(style);
 }
