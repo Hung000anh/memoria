@@ -253,7 +253,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   header.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;";
   
   const title = document.createElement("div");
-  title.innerHTML = `<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px;"><img src="${chrome.runtime.getURL('icons/icon48.png')}" style="width:16px;height:16px;border-radius:50%;"> Dịch thuật</span>`;
+  title.innerHTML = `<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px; line-height:1;"><img src="${chrome.runtime.getURL('icons/icon48.png')}" style="width:16px;height:16px;border-radius:50%; display:block; margin:0; padding:0; object-fit:contain;"> Dịch thuật</span>`;
   
   const closeBtn = document.createElement("button");
   closeBtn.innerHTML = "&times;";
