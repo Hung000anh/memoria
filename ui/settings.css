@@ -1,12 +1,24 @@
 :root {
   --bg-color: #f9fafb;
   --text-color: #1f2937;
+  --subtitle-color: #6b7280;
   --card-bg: #ffffff;
   --border-color: #e5e7eb;
+  --input-bg: #ffffff;
   --primary: #10b981; /* Màu xanh lá (đậu xanh) */
   --primary-hover: #059669;
   --danger: #ef4444;
   --danger-bg: #fee2e2;
+}
+
+[data-theme="dark"] {
+  --bg-color: #111827;
+  --text-color: #f3f4f6;
+  --subtitle-color: #9ca3af;
+  --card-bg: #1f2937;
+  --border-color: #374151;
+  --input-bg: #374151;
+  --danger-bg: #451a1a;
 }
 
 * {
@@ -35,7 +47,7 @@ h1 {
 }
 
 .subtitle {
-  color: #6b7280;
+  color: var(--subtitle-color);
   margin-bottom: 24px;
   font-size: 14px;
 }
@@ -63,6 +75,8 @@ h1 {
 input[type="text"] {
   flex: 1;
   padding: 10px 12px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 14px;
@@ -92,7 +106,7 @@ button:hover {
 
 .help-text {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--subtitle-color);
 }
 
 .key-list {
@@ -107,7 +121,7 @@ button:hover {
   border: 1px solid var(--border-color);
   border-radius: 6px;
   margin-bottom: 8px;
-  background: #fdfdfd;
+  background: var(--card-bg);
 }
 
 .key-info {
@@ -119,7 +133,7 @@ button:hover {
 .key-string {
   font-family: monospace;
   font-size: 14px;
-  color: #374151;
+  color: var(--text-color);
 }
 
 .key-status {
