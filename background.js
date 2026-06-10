@@ -13,6 +13,26 @@ chrome.sidePanel
 
 // Lắng nghe các event từ content script hoặc popup/sidepanel
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "translate_text") {
+    chrome.storage.local.get({ translateTargetLang: 'vi' }, async (data) => {
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${data.translateTargetLang}&dt=t&q=${encodeURIComponent(request.text)}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        let translatedText = '';
+        if (json && json[0]) {
+          json[0].forEach(item => {
+            if (item[0]) translatedText += item[0];
+          });
+        }
+        sendResponse({ success: true, translatedText });
+      } catch (e) {
+        sendResponse({ success: false, error: e.message });
+      }
+    });
+    return true;
+  }
+
   if (request.action === "save_clipboard") {
     // Lưu trữ clipboard history
     chrome.storage.local.get({ clipboardHistory: [] }, (data) => {

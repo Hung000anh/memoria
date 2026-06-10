@@ -163,4 +163,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadAiSettings();
+
+  // --- Logic Cài đặt Dịch thuật ---
+  const translateTargetLang = document.getElementById('translateTargetLang');
+  const saveTranslateSettingsBtn = document.getElementById('saveTranslateSettingsBtn');
+  const translateSaveMsg = document.getElementById('translateSaveMsg');
+
+  function loadTranslateSettings() {
+    chrome.storage.local.get({ translateTargetLang: 'vi' }, (data) => {
+      if (translateTargetLang) translateTargetLang.value = data.translateTargetLang;
+    });
+  }
+
+  if (saveTranslateSettingsBtn) {
+    saveTranslateSettingsBtn.addEventListener('click', () => {
+      const lang = translateTargetLang.value;
+      chrome.storage.local.set({ translateTargetLang: lang }, () => {
+        translateSaveMsg.style.display = 'block';
+        setTimeout(() => translateSaveMsg.style.display = 'none', 3000);
+      });
+    });
+  }
+
+  loadTranslateSettings();
 });

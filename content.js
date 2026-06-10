@@ -149,3 +149,184 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ status: "ok" });
   }
 });
+
+// --- Tính năng Dịch thuật bôi đen ---
+let dauxanhSelectedText = "";
+let translateIconContainer = null;
+let translatePopup = null;
+
+function removeTranslateUI() {
+  if (translateIconContainer && document.body.contains(translateIconContainer)) {
+    document.body.removeChild(translateIconContainer);
+  }
+  if (translatePopup && document.body.contains(translatePopup)) {
+    document.body.removeChild(translatePopup);
+  }
+  translateIconContainer = null;
+  translatePopup = null;
+}
+
+document.addEventListener("selectionchange", () => {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed || selection.toString().trim() === "") {
+    if (!translatePopup) removeTranslateUI();
+  }
+});
+
+document.addEventListener("mouseup", (e) => {
+  if (translatePopup && translatePopup.contains(e.target)) return;
+  if (translateIconContainer && translateIconContainer.contains(e.target)) return;
+
+  const selection = window.getSelection();
+  const text = selection.toString().trim();
+  
+  if (text.length > 0) {
+    dauxanhSelectedText = text;
+    if (translateIconContainer) removeTranslateUI();
+    
+    translateIconContainer = document.createElement("div");
+    translateIconContainer.id = "dauxanh-translate-icon-btn";
+    translateIconContainer.style.cssText = `
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 2147483647;
+      animation: dauxanhPop 0.2s ease-out;
+      border: 1px solid #e5e7eb;
+    `;
+    
+    const iconImg = document.createElement("img");
+    iconImg.src = chrome.runtime.getURL("icons/icon48.png");
+    iconImg.style.cssText = "width: 18px; height: 18px; border-radius: 50%;";
+    translateIconContainer.appendChild(iconImg);
+    
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    
+    translateIconContainer.style.top = (window.scrollY + rect.bottom + 5) + 'px';
+    translateIconContainer.style.left = (window.scrollX + rect.right - 14) + 'px';
+    
+    translateIconContainer.onclick = async (ev) => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      showTranslatePopup(rect);
+    };
+    
+    document.body.appendChild(translateIconContainer);
+  } else {
+    removeTranslateUI();
+  }
+});
+
+function showTranslatePopup(rect) {
+  if (translateIconContainer) translateIconContainer.style.display = 'none';
+  if (translatePopup) document.body.removeChild(translatePopup);
+
+  translatePopup = document.createElement("div");
+  translatePopup.style.cssText = `
+    position: absolute;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    width: 320px;
+    padding: 16px;
+    z-index: 2147483647;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #333;
+    animation: dauxanhPop 0.2s ease-out;
+    border: 1px solid #e5e7eb;
+  `;
+  
+  const header = document.createElement("div");
+  header.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;";
+  
+  const title = document.createElement("div");
+  title.innerHTML = \`<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px;"><img src="\${chrome.runtime.getURL('icons/icon48.png')}" style="width:16px;height:16px;border-radius:50%;"> Dịch thuật</span>\`;
+  
+  const closeBtn = document.createElement("button");
+  closeBtn.innerHTML = "&times;";
+  closeBtn.style.cssText = "background: none; border: none; font-size: 20px; cursor: pointer; color: #9ca3af; line-height: 1;";
+  closeBtn.onclick = removeTranslateUI;
+  
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  translatePopup.appendChild(header);
+
+  const contentArea = document.createElement("div");
+  contentArea.style.cssText = "font-size: 14px; max-height: 200px; overflow-y: auto; line-height: 1.5; margin-bottom: 12px;";
+  contentArea.innerHTML = '<div style="color: #6b7280; font-style: italic; text-align: center;">Đang dịch...</div>';
+  translatePopup.appendChild(contentArea);
+  
+  const footer = document.createElement("div");
+  footer.style.cssText = "display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #f3f4f6; padding-top: 12px;";
+  
+  const saveBtn = document.createElement("button");
+  saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Lưu Ghi chú';
+  saveBtn.style.cssText = "background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: none; align-items: center;";
+  saveBtn.onmouseover = () => saveBtn.style.background = "#059669";
+  saveBtn.onmouseout = () => saveBtn.style.background = "#10b981";
+  
+  footer.appendChild(saveBtn);
+  translatePopup.appendChild(footer);
+
+  let topPos = window.scrollY + rect.bottom + 10;
+  if (topPos + 250 > window.scrollY + window.innerHeight) {
+    topPos = window.scrollY + rect.top - 260; 
+  }
+  translatePopup.style.top = topPos + 'px';
+  translatePopup.style.left = Math.max(10, window.scrollX + rect.left) + 'px';
+  
+  document.body.appendChild(translatePopup);
+
+  chrome.runtime.sendMessage({ action: "translate_text", text: dauxanhSelectedText }, (response) => {
+    if (response && response.success) {
+      contentArea.innerHTML = \`
+        <div style="color: #6b7280; margin-bottom: 6px; font-size: 12px; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px;">\${dauxanhSelectedText}</div>
+        <div style="color: #111827;">\${response.translatedText}</div>
+      \`;
+      saveBtn.style.display = "inline-flex";
+      saveBtn.onclick = () => {
+        saveBtn.innerText = "Đang lưu...";
+        chrome.storage.local.get({ notes: [] }, (data) => {
+          const notes = data.notes;
+          notes.unshift({
+            id: Date.now(),
+            title: 'Bản dịch từ ' + window.location.hostname,
+            text: \`**Bản gốc:**\\n\${dauxanhSelectedText}\\n\\n**Bản dịch:**\\n\${response.translatedText}\`,
+            content: \`**Bản gốc:**\\n\${dauxanhSelectedText}\\n\\n**Bản dịch:**\\n\${response.translatedText}\`,
+            color: '#bbf7d0',
+            date: new Date().toISOString()
+          });
+          chrome.storage.local.set({ notes }, () => {
+            saveBtn.innerHTML = "Đã lưu!";
+            saveBtn.style.background = "#059669";
+            setTimeout(() => {
+              removeTranslateUI();
+            }, 1500);
+          });
+        });
+      };
+    } else {
+      contentArea.innerHTML = \`<div style="color: #ef4444;">Lỗi dịch thuật: \${response ? response.error : 'Không phản hồi'}</div>\`;
+    }
+  });
+}
+
+if (!document.getElementById('dauxanh-translate-style')) {
+  const style = document.createElement('style');
+  style.id = 'dauxanh-translate-style';
+  style.textContent = \`
+    @keyframes dauxanhPop {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  \`;
+  document.head.appendChild(style);
+}
