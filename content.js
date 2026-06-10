@@ -248,7 +248,7 @@ function showTranslatePopup(rect) {
   header.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;";
   
   const title = document.createElement("div");
-  title.innerHTML = \`<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px;"><img src="\${chrome.runtime.getURL('icons/icon48.png')}" style="width:16px;height:16px;border-radius:50%;"> Dịch thuật</span>\`;
+  title.innerHTML = `<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px;"><img src="${chrome.runtime.getURL('icons/icon48.png')}" style="width:16px;height:16px;border-radius:50%;"> Dịch thuật</span>`;
   
   const closeBtn = document.createElement("button");
   closeBtn.innerHTML = "&times;";
@@ -287,10 +287,10 @@ function showTranslatePopup(rect) {
 
   chrome.runtime.sendMessage({ action: "translate_text", text: dauxanhSelectedText }, (response) => {
     if (response && response.success) {
-      contentArea.innerHTML = \`
-        <div style="color: #6b7280; margin-bottom: 6px; font-size: 12px; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px;">\${dauxanhSelectedText}</div>
-        <div style="color: #111827;">\${response.translatedText}</div>
-      \`;
+      contentArea.innerHTML = `
+        <div style="color: #6b7280; margin-bottom: 6px; font-size: 12px; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px;">${dauxanhSelectedText}</div>
+        <div style="color: #111827;">${response.translatedText}</div>
+      `;
       saveBtn.style.display = "inline-flex";
       saveBtn.onclick = () => {
         saveBtn.innerText = "Đang lưu...";
@@ -299,8 +299,8 @@ function showTranslatePopup(rect) {
           notes.unshift({
             id: Date.now(),
             title: 'Bản dịch từ ' + window.location.hostname,
-            text: \`**Bản gốc:**\\n\${dauxanhSelectedText}\\n\\n**Bản dịch:**\\n\${response.translatedText}\`,
-            content: \`**Bản gốc:**\\n\${dauxanhSelectedText}\\n\\n**Bản dịch:**\\n\${response.translatedText}\`,
+            text: `**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
+            content: `**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
             color: '#bbf7d0',
             date: new Date().toISOString()
           });
@@ -314,7 +314,7 @@ function showTranslatePopup(rect) {
         });
       };
     } else {
-      contentArea.innerHTML = \`<div style="color: #ef4444;">Lỗi dịch thuật: \${response ? response.error : 'Không phản hồi'}</div>\`;
+      contentArea.innerHTML = `<div style="color: #ef4444;">Lỗi dịch thuật: ${response ? response.error : 'Không phản hồi'}</div>`;
     }
   });
 }
@@ -322,11 +322,11 @@ function showTranslatePopup(rect) {
 if (!document.getElementById('dauxanh-translate-style')) {
   const style = document.createElement('style');
   style.id = 'dauxanh-translate-style';
-  style.textContent = \`
+  style.textContent = `
     @keyframes dauxanhPop {
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
     }
-  \`;
+  `;
   document.head.appendChild(style);
 }
