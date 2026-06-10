@@ -279,7 +279,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     min-width: 250px !important;
     min-height: 100px !important;
     max-width: 90vw !important;
-    max-height: 90vh !important;
+    max-height: 400px !important;
     padding: 16px !important;
     box-sizing: border-box !important;
     z-index: 2147483647 !important;
@@ -407,6 +407,10 @@ function showTranslatePopup(rect, mouseX, mouseY) {
       const startY = e.clientY;
       const startW = translatePopup.offsetWidth;
       const startH = translatePopup.offsetHeight;
+
+      // Unlock max-height so user can resize larger than default
+      translatePopup.style.setProperty("max-height", "90vh", "important");
+      translatePopup.style.setProperty("max-width", "90vw", "important");
 
       const onMouseMove = (moveEvent) => {
         if (type === 'right' || type === 'corner') {
