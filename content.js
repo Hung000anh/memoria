@@ -270,12 +270,13 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     background: ${bg} !important;
     border-radius: 12px !important;
     box-shadow: 0 4px 20px rgba(0,0,0,0.25) !important;
-    width: 500px !important;
+    width: 500px;
     min-width: 250px !important;
     min-height: 180px !important;
     max-width: 90vw !important;
     max-height: 90vh !important;
     padding: 16px !important;
+    box-sizing: border-box !important;
     z-index: 2147483647 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
     color: ${txtColor} !important;
