@@ -36,7 +36,7 @@ const CATEGORY_MAP = {
   "office.com": "Công việc", "teams.microsoft.com": "Công việc", "zoom.us": "Công việc",
   "chatgpt.com": "Công việc", "claude.ai": "Công việc", "gemini.google.com": "Công việc",
   "jira.com": "Công việc", "atlassian.com": "Công việc", "asana.com": "Công việc", 
-  "monday.com": "Công việc", "wordpress.com": "Công việc", "medium.com": "Công việc",
+  "monday.com": "Công việc", "wordpress.com": "Công việc", "medium.com": "Công việc", "supabase.com": "Công việc",
   "coursera.org": "Học tập", "udemy.com": "Học tập", "duolingo.com": "Học tập", 
   "quizlet.com": "Học tập", "khanacademy.org": "Học tập", "w3schools.com": "Học tập",
   "edx.org": "Học tập", "skillshare.com": "Học tập", "codecademy.com": "Học tập", 
