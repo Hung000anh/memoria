@@ -47,6 +47,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     const box = document.createElement("div");
     box.style.cssText = `
+      box-sizing: border-box !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
       background-color: white !important;
       padding: 30px 40px !important;
       border-radius: 16px !important;
@@ -69,7 +73,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const title = document.createElement("h2");
     title.textContent = "✨ Memoria nhắc nhở";
     title.style.cssText = `
+      box-sizing: border-box !important;
+      display: block !important;
+      line-height: 1.2 !important;
       margin: 0 0 15px 0 !important;
+      padding: 0 !important;
       color: #10b981 !important;
       font-size: 24px !important;
       font-weight: 700 !important;
@@ -78,6 +86,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const msg = document.createElement("p");
     msg.textContent = request.text;
     msg.style.cssText = `
+      box-sizing: border-box !important;
+      display: block !important;
+      word-wrap: break-word !important;
+      padding: 0 !important;
       font-size: 20px !important;
       margin: 0 0 25px 0 !important;
       color: #333 !important;
@@ -87,10 +99,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const btn = document.createElement("button");
     btn.textContent = "Đã hiểu";
     btn.style.cssText = `
+      box-sizing: border-box !important;
+      display: inline-block !important;
+      height: auto !important;
+      line-height: 1.5 !important;
       background-color: #10b981 !important;
       color: white !important;
       border: none !important;
       padding: 12px 24px !important;
+      margin: 0 !important;
       border-radius: 8px !important;
       font-size: 16px !important;
       font-weight: 600 !important;
