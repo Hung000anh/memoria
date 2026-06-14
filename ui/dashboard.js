@@ -61,26 +61,94 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // --- Sự kiện sắp tới ---
+      // --- Sự kiện sắp tới (Google Calendar) ---
       const schedList = document.getElementById('dashScheduleList');
       if (schedList) {
-        schedList.innerHTML = '';
-        const now = new Date();
-        const upcoming = (data.schedules || [])
-          .filter(s => s.date && new Date(s.date + 'T' + (s.time || '00:00')) >= now)
-          .sort((a, b) => new Date(a.date + 'T' + (a.time || '00:00')) - new Date(b.date + 'T' + (b.time || '00:00')))
-          .slice(0, 3);
+        schedList.innerHTML = '<li class="dash-empty">Đang tải lịch trình...</li>';
+        
+        window.authService.checkSession().then(async (session) => {
+          if (!session.loggedIn) {
+            schedList.innerHTML = '<li class="dash-empty">Vui lòng đăng nhập Google để đồng bộ lịch</li>';
+            return;
+          }
 
-        if (upcoming.length === 0) {
-          schedList.innerHTML = '<li class="dash-empty">Không có sự kiện sắp tới</li>';
-        } else {
-          upcoming.forEach(s => {
-            const li = document.createElement('li');
-            const dateStr = s.time ? `${s.date} ${s.time}` : s.date;
-            li.textContent = `${s.title} · ${dateStr}`;
-            schedList.appendChild(li);
-          });
-        }
+          try {
+            const nowISO = new Date().toISOString();
+
+            // 1. Lấy danh sách toàn bộ các lịch của user
+            let calendarIds = ['primary'];
+            try {
+              const listUrl = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
+              const listRes = await window.authService.fetchWithAuth(listUrl);
+              if (listRes.ok) {
+                const listData = await listRes.json();
+                if (listData.items && listData.items.length > 0) {
+                  calendarIds = listData.items
+                    .filter(cal => cal.selected || cal.primary || cal.summary === "Memoria - Công việc")
+                    .map(cal => cal.id);
+                }
+              }
+            } catch (err) {
+              console.warn("Không thể tải danh sách lịch trên Dashboard, sử dụng lịch chính mặc định:", err);
+            }
+
+            if (calendarIds.length === 0) {
+              calendarIds = ['primary'];
+            }
+            calendarIds = [...new Set(calendarIds)]; // Loại bỏ trùng lặp
+
+            // 2. Fetch song song các sự kiện sắp tới từ các lịch được chọn
+            const eventPromises = calendarIds.map(async (calendarId) => {
+              try {
+                const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${nowISO}&maxResults=10&singleEvents=true`;
+                const res = await window.authService.fetchWithAuth(url);
+                if (!res.ok) return [];
+                const data = await res.json();
+                return (data.items || []).filter(ev => ev.status !== 'cancelled');
+              } catch (e) {
+                console.error(`Lỗi tải sự kiện Dashboard từ lịch ${calendarId}:`, e);
+                return [];
+              }
+            });
+
+            const results = await Promise.all(eventPromises);
+            const allEvents = results.flat();
+
+            // Lọc bỏ các công việc/sự kiện đã hoàn thành
+            const activeEvents = allEvents.filter(ev => {
+              const title = ev.summary || "";
+              const isCompleted = title.startsWith("✓ ") || ev.colorId === "8" || ev.colorId === "2" || ev.colorId === "10" || (ev.extendedProperties?.private?.status === "completed");
+              return !isCompleted;
+            });
+
+            // Sắp xếp các sự kiện theo thời gian bắt đầu
+            activeEvents.sort((a, b) => {
+              const aTime = a.start.dateTime || a.start.date;
+              const bTime = b.start.dateTime || b.start.date;
+              return aTime.localeCompare(bTime);
+            });
+
+            // Lấy tối đa 3 sự kiện sắp tới
+            const items = activeEvents.slice(0, 3);
+
+            schedList.innerHTML = '';
+            if (items.length === 0) {
+              schedList.innerHTML = '<li class="dash-empty">Không có sự kiện sắp tới</li>';
+              return;
+            }
+
+            items.forEach(ev => {
+              const li = document.createElement('li');
+              const dateStr = ev.start.dateTime 
+                ? ev.start.dateTime.replace('T', ' ').substring(0, 16) 
+                : ev.start.date;
+              li.textContent = `${ev.summary || '(Không có tiêu đề)'} · ${dateStr}`;
+              schedList.appendChild(li);
+            });
+          } catch (e) {
+            schedList.innerHTML = '<li class="dash-empty" style="color: #ef4444;">Không thể tải sự kiện</li>';
+          }
+        });
       }
 
       // --- Hẹn giờ đang hoạt động ---

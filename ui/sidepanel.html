@@ -53,6 +53,14 @@
           </svg>
           <span class="nav-label">Clipboard</span>
         </button>
+        <button class="nav-item" data-target="tasks-view" title="Công việc">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          <span class="nav-label">Công việc</span>
+        </button>
         <button class="nav-item" data-target="notes-view" title="Ghi chú">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -114,6 +122,17 @@
           </svg>
           <span class="nav-label">Cài đặt</span>
         </button>
+        <div id="sidebarUserContainer" style="margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; width: 100%;">
+          <!-- Sẽ được điền động bằng JS của authService -->
+          <button class="nav-item user-btn" id="sidebarUserBtn" title="Đăng nhập Google">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span class="nav-label">Đăng nhập</span>
+          </button>
+        </div>
       </div>
     </aside>
 
@@ -219,6 +238,25 @@
           <button id="openAddNoteModalBtn" class="btn-primary" style="padding: 6px 12px; font-size: 13px;">+ Thêm</button>
         </div>
         <ul id="noteList" class="list"></ul>
+      </div>
+
+      <!-- Tasks Pane -->
+      <div id="tasks-view" class="pane">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2>Công việc</h2>
+          <button id="openAddTaskModalBtn" class="btn-primary" style="padding: 6px 12px; font-size: 13px; display: none;">+ Thêm</button>
+        </div>
+
+        <div class="tasks-content-area" id="tasksContentArea" style="display: none;">
+
+          <!-- Danh sách công việc -->
+          <ul id="taskList" class="list" style="margin: 0; padding: 0; list-style: none;"></ul>
+        </div>
+
+        <div class="auth-message-area" id="authMessageArea" style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+           <p style="margin-bottom: 16px;">Vui lòng đăng nhập Google để quản lý và đồng bộ công việc của bạn.</p>
+           <button id="authLoginLargeBtn" class="btn-primary" style="padding: 12px 24px; font-size: 14px;">Đăng nhập bằng Google</button>
+        </div>
       </div>
 
       <!-- Schedule Pane -->
@@ -511,13 +549,64 @@
     </div>
   </div>
 
+  <!-- Modal Sửa Công việc -->
+  <div class="modal" id="taskModal">
+    <div class="modal-content">
+      <h3 id="taskModalTitle" style="margin-bottom: 16px; font-size: 18px; font-weight: 600;">Sửa công việc</h3>
+      <div class="input-group" style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Tiêu đề <span style="color:red">*</span></label>
+        <input type="text" id="taskTitleInput" placeholder="Tiêu đề công việc..." style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit;">
+      </div>
+      <div class="input-group" style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Mô tả / Chi tiết</label>
+        <textarea id="taskNotesInput" placeholder="Mô tả hoặc chi tiết công việc..." rows="3" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit; resize: none;"></textarea>
+      </div>
+      <div class="input-group" id="taskAllDayGroup" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="taskAllDayCheckbox" checked style="width: auto; cursor: pointer; margin: 0;">
+        <label for="taskAllDayCheckbox" style="font-size: 13px; color: var(--text-color); cursor: pointer; user-select: none; margin: 0;">Sự kiện cả ngày</label>
+      </div>
+      <div class="input-group" style="margin-bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 120px;">
+          <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Ngày bắt đầu <span style="color:red">*</span></label>
+          <input type="date" id="taskStartDueInput" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit;">
+        </div>
+        <div style="flex: 1; min-width: 120px;">
+          <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Ngày hạn chót <span style="color:red">*</span></label>
+          <input type="date" id="taskDueInput" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit;">
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <div id="taskStartTimeInputGroup" style="flex: 1; min-width: 90px; display: none;">
+          <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Giờ bắt đầu</label>
+          <input type="time" id="taskStartTimeInput" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit;">
+        </div>
+        <div id="taskTimeInputGroup" style="flex: 1; min-width: 90px; display: none;">
+          <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Giờ hạn chót</label>
+          <input type="time" id="taskTimeInput" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit;">
+        </div>
+      </div>
+      <div class="input-group" id="taskRecurrenceGroup" style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Lặp lại</label>
+        <select id="taskRecurrenceSelect" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit;"></select>
+      </div>
+      <p id="taskErrorMsg" style="color: #ef4444; font-size: 12px; margin-bottom: 12px; display: none;"></p>
+      <div style="display: flex; gap: 8px;">
+        <button id="saveTaskBtn" class="btn-primary" style="flex: 1;">Lưu công việc</button>
+        <button id="cancelTaskBtn" class="btn-cancel" style="flex: 1;">Hủy</button>
+      </div>
+    </div>
+  </div>
+
   </div>
   <script src="purify.min.js"></script>
   <script src="marked.min.js"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
   <script src="utils.js"></script>
   <script src="theme.js"></script>
   <script src="clipboard.js"></script>
   <script src="notes.js"></script>
+  <script src="tasks.js"></script>
   <script src="schedule.js"></script>
   <script src="reminders.js"></script>
   <script src="gemini.js"></script>

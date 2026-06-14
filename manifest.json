@@ -15,7 +15,8 @@
     "sidePanel",
     "scripting",
     "notifications",
-    "idle"
+    "idle",
+    "identity"
   ],
   "host_permissions": [
     "<all_urls>"
