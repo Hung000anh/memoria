@@ -9,11 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const calendarDays = document.getElementById('calendarDays');
   const selectedDateText = document.getElementById('selectedDateText');
   const scheduleList = document.getElementById('scheduleList');
+  const scheduleTaskList = document.getElementById('scheduleTaskList');
   const upcomingScheduleList = document.getElementById('upcomingScheduleList');
   const openAddScheduleModalBtn = document.getElementById('openAddScheduleModalBtn');
 
   // Modal Thêm/Sửa
   const scheduleModal = document.getElementById('scheduleModal');
+  const schTypeEventBtn = document.getElementById('schTypeEventBtn');
+  const schTypeTaskBtn = document.getElementById('schTypeTaskBtn');
   const scheduleModalTitle = document.getElementById('scheduleModalTitle');
   const schTitleInput = document.getElementById('schTitleInput');
   const schDateInput = document.getElementById('schDateInput');
@@ -51,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let editingSchId = null;
   let viewingSchId = null;
   let viewingSchDate = null;
+  let selectedType = 'event';
 
   // Khởi tạo ngày mặc định
   schDateInput.valueAsDate = new Date();
@@ -143,70 +147,141 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderScheduleList() {
-    const events = getEventsForDate(selectedDate);
+    const allItems = getEventsForDate(selectedDate);
+    
+    // Tách Sự kiện và Công việc dựa trên ID lịch của TasksManager
+    const taskCalId = window.tasksManager && window.tasksManager.calendarId;
+    const events = allItems.filter(sch => sch.calendarId !== taskCalId);
+    const tasks = allItems.filter(sch => sch.calendarId === taskCalId);
+
     scheduleList.innerHTML = '';
+    scheduleTaskList.innerHTML = '';
 
     const dateStr = formatDateString(selectedDate);
     const todayStr = formatDateString(new Date());
     
     if (dateStr === todayStr) {
-      selectedDateText.textContent = `Sự kiện hôm nay (${dateStr})`;
+      selectedDateText.textContent = `Lịch trình hôm nay (${dateStr})`;
     } else {
-      selectedDateText.textContent = `Sự kiện ngày ${dateStr}`;
+      selectedDateText.textContent = `Lịch trình ngày ${dateStr}`;
     }
 
+    // 1. Render danh sách Sự kiện (Events)
     if (events.length === 0) {
       scheduleList.innerHTML = '<li class="list-item"><div class="list-item-content" style="color: var(--text-muted); font-size: 13px;">Không có sự kiện nào.</div></li>';
-      return;
+    } else {
+      events.sort((a, b) => {
+        if (!a.time && !b.time) return 0;
+        if (!a.time) return 1;
+        if (!b.time) return -1;
+        return a.time.localeCompare(b.time);
+      });
+
+      events.forEach(sch => {
+        const li = document.createElement('li');
+        li.className = 'list-item';
+        li.style.cursor = 'default';
+        
+        const timeText = sch.time ? `<span style="font-size: 11px; background: var(--nav-hover-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 2px 6px; border-radius: 4px; margin-right: 6px; vertical-align: middle;">${sch.time}</span>` : '';
+        const repIcon = sch.recurrence !== 'none' ? `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#10b981; margin-left:6px;"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>` : '';
+        
+        li.innerHTML = `
+          <div class="list-item-content schedule-clickable-area" style="flex: 1; min-width: 0; cursor: pointer;" title="Nhấn để xem chi tiết">
+            <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px; word-break: break-word; display: flex; align-items: center; flex-wrap: wrap;">${timeText}${sch.title} ${repIcon}</div>
+            <div style="font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sch.content || 'Không có mô tả'}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-left: 10px; gap: 8px; flex-shrink: 0;">
+            <button class="btn-edit btn-edit-sch" title="Sửa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+            <button class="btn-delete btn-delete-sch" title="Xóa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+          </div>
+        `;
+
+        li.querySelector('.schedule-clickable-area').addEventListener('click', () => openViewModal(sch));
+        li.querySelector('.btn-edit-sch').addEventListener('click', (e) => {
+          e.stopPropagation();
+          openEditModal(sch);
+        });
+        li.querySelector('.btn-delete-sch').addEventListener('click', (e) => {
+          e.stopPropagation();
+          viewingSchId = sch.id;
+          viewingSchDate = selectedDate;
+          
+          if (sch.rawEvent && sch.rawEvent.recurrence) {
+            deleteScheduleConfirmModal.classList.add('active');
+          } else {
+            deleteSchedule('all');
+          }
+        });
+
+        scheduleList.appendChild(li);
+      });
     }
 
-    // Sắp xếp theo giờ
-    events.sort((a, b) => {
-      if (!a.time && !b.time) return 0;
-      if (!a.time) return 1;
-      if (!b.time) return -1;
-      return a.time.localeCompare(b.time);
-    });
-
-    events.forEach(sch => {
-      const li = document.createElement('li');
-      li.className = 'list-item';
-      li.style.cursor = 'default';
-      
-      const timeText = sch.time ? `<span style="font-size: 11px; background: var(--nav-hover-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 2px 6px; border-radius: 4px; margin-right: 6px; vertical-align: middle;">${sch.time}</span>` : '';
-      const repIcon = sch.recurrence !== 'none' ? `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#10b981; margin-left:6px;"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>` : '';
-      
-      li.innerHTML = `
-        <div class="list-item-content schedule-clickable-area" style="flex: 1; min-width: 0; cursor: pointer;" title="Nhấn để xem chi tiết">
-          <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px; word-break: break-word; display: flex; align-items: center; flex-wrap: wrap;">${timeText}${sch.title} ${repIcon}</div>
-          <div style="font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sch.content || 'Không có mô tả'}</div>
-        </div>
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-left: 10px; gap: 8px; flex-shrink: 0;">
-          <button class="btn-edit btn-edit-sch" title="Sửa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-          <button class="btn-delete btn-delete-sch" title="Xóa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
-        </div>
-      `;
-
-      li.querySelector('.schedule-clickable-area').addEventListener('click', () => openViewModal(sch));
-      li.querySelector('.btn-edit-sch').addEventListener('click', (e) => {
-        e.stopPropagation();
-        openEditModal(sch);
+    // 2. Render danh sách Công việc (Tasks)
+    if (tasks.length === 0) {
+      scheduleTaskList.innerHTML = '<li class="list-item"><div class="list-item-content" style="color: var(--text-muted); font-size: 13px;">Không có công việc nào.</div></li>';
+    } else {
+      tasks.sort((a, b) => {
+        if (!a.time && !b.time) return 0;
+        if (!a.time) return 1;
+        if (!b.time) return -1;
+        return a.time.localeCompare(b.time);
       });
-      li.querySelector('.btn-delete-sch').addEventListener('click', (e) => {
-        e.stopPropagation();
-        viewingSchId = sch.id;
-        viewingSchDate = selectedDate;
+
+      tasks.forEach(sch => {
+        const li = document.createElement('li');
+        li.className = 'list-item';
+        li.style.cursor = 'default';
+        li.style.display = 'flex';
+        li.style.alignItems = 'flex-start';
         
-        // Nếu là sự kiện lặp lại, hỏi user muốn xóa thế nào
-        if (sch.rawEvent && sch.rawEvent.recurrence) {
-          deleteScheduleConfirmModal.classList.add('active');
-        } else {
-          deleteSchedule('all');
-        }
-      });
+        const isCompleted = sch.title.startsWith("✓ ") || (sch.rawEvent && sch.rawEvent.extendedProperties && sch.rawEvent.extendedProperties.private && sch.rawEvent.extendedProperties.private.status === "completed");
+        const cleanTitle = sch.title.startsWith("✓ ") ? sch.title.substring(2) : sch.title;
+        
+        const titleStyle = isCompleted ? 'text-decoration: line-through; color: var(--text-muted); opacity: 0.6;' : '';
+        const timeText = sch.time ? `<span style="font-size: 11px; background: var(--nav-hover-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 2px 6px; border-radius: 4px; margin-right: 6px; vertical-align: middle; ${titleStyle}">${sch.time}</span>` : '';
+        const repIcon = sch.recurrence !== 'none' ? `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#10b981; margin-left:6px;"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>` : '';
 
-      scheduleList.appendChild(li);
-    });
+        li.innerHTML = `
+          <input type="checkbox" class="task-checkbox" ${isCompleted ? "checked" : ""} style="margin-right: 10px; margin-top: 4px; cursor: pointer; flex-shrink: 0; width: 16px; height: 16px;">
+          <div class="list-item-content schedule-clickable-area" style="flex: 1; min-width: 0; cursor: pointer;" title="Nhấn để xem chi tiết">
+            <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px; word-break: break-word; display: flex; align-items: center; flex-wrap: wrap; ${titleStyle}">${timeText}${cleanTitle} ${repIcon}</div>
+            <div style="font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ${titleStyle}">${sch.content || 'Không có mô tả'}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-left: 10px; gap: 8px; flex-shrink: 0;">
+            <button class="btn-edit btn-edit-sch" title="Sửa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+            <button class="btn-delete btn-delete-sch" title="Xóa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+          </div>
+        `;
+
+        const checkbox = li.querySelector('.task-checkbox');
+        checkbox.addEventListener('change', async (e) => {
+          e.stopPropagation();
+          if (window.tasksManager) {
+            await window.tasksManager.toggleTaskStatus(sch.id, e.target.checked);
+          }
+        });
+
+        li.querySelector('.schedule-clickable-area').addEventListener('click', () => openViewModal(sch));
+        li.querySelector('.btn-edit-sch').addEventListener('click', (e) => {
+          e.stopPropagation();
+          openEditModal(sch);
+        });
+        li.querySelector('.btn-delete-sch').addEventListener('click', (e) => {
+          e.stopPropagation();
+          viewingSchId = sch.id;
+          viewingSchDate = selectedDate;
+          
+          if (sch.rawEvent && sch.rawEvent.recurrence) {
+            deleteScheduleConfirmModal.classList.add('active');
+          } else {
+            deleteSchedule('all');
+          }
+        });
+
+        scheduleTaskList.appendChild(li);
+      });
+    }
   }
 
   function renderUpcomingSchedules() {
@@ -285,13 +360,21 @@ document.addEventListener('DOMContentLoaded', () => {
     schContentInput.value = '';
     scheduleErrorMsg.style.display = 'none';
     schRecurrenceEndGroup.style.display = 'none';
+
+    // Reset segmented control for Add mode
+    selectedType = 'event';
+    schTypeEventBtn.classList.add('active');
+    schTypeTaskBtn.classList.remove('active');
+    schTypeEventBtn.disabled = false;
+    schTypeTaskBtn.disabled = false;
+    saveScheduleBtn.textContent = 'Lưu sự kiện';
+
     scheduleModal.classList.add('active');
   }
 
   function openEditModal(sch) {
     editingSchId = sch.id;
-    scheduleModalTitle.textContent = 'Sửa sự kiện';
-    schTitleInput.value = sch.title;
+    schTitleInput.value = sch.title.startsWith("✓ ") ? sch.title.substring(2) : sch.title;
     schDateInput.value = sch.date;
     schTimeInput.value = sch.time || '';
     
@@ -317,6 +400,24 @@ document.addEventListener('DOMContentLoaded', () => {
     schContentInput.value = sch.content;
     scheduleErrorMsg.style.display = 'none';
     schRecurrenceEndGroup.style.display = recValue === 'none' ? 'none' : 'block';
+
+    // Set segmented control & title based on type, then disable it
+    const taskCalId = window.tasksManager && window.tasksManager.calendarId;
+    if (sch.calendarId === taskCalId) {
+      selectedType = 'task';
+      scheduleModalTitle.textContent = 'Sửa công việc';
+      schTypeTaskBtn.classList.add('active');
+      schTypeEventBtn.classList.remove('active');
+      saveScheduleBtn.textContent = 'Lưu công việc';
+    } else {
+      selectedType = 'event';
+      scheduleModalTitle.textContent = 'Sửa sự kiện';
+      schTypeEventBtn.classList.add('active');
+      schTypeTaskBtn.classList.remove('active');
+      saveScheduleBtn.textContent = 'Lưu sự kiện';
+    }
+    schTypeEventBtn.disabled = true;
+    schTypeTaskBtn.disabled = true;
     
     viewScheduleModal.classList.remove('active');
     scheduleModal.classList.add('active');
@@ -325,7 +426,21 @@ document.addEventListener('DOMContentLoaded', () => {
   function openViewModal(sch) {
     viewingSchId = sch.id;
     viewingSchDate = parseDateString(sch.date);
-    viewSchTitle.textContent = sch.title;
+
+    const taskCalId = window.tasksManager && window.tasksManager.calendarId;
+    const isTask = sch.calendarId === taskCalId;
+    const isCompleted = isTask && (sch.title.startsWith("✓ ") || (sch.rawEvent && (sch.rawEvent.colorId === "8" || sch.rawEvent.colorId === "2" || sch.rawEvent.colorId === "10")) || (sch.rawEvent?.extendedProperties?.private?.status === "completed"));
+    const cleanTitle = (isTask && sch.title.startsWith("✓ ")) ? sch.title.substring(2) : sch.title;
+
+    viewSchTitle.textContent = cleanTitle;
+    
+    if (isCompleted) {
+      viewSchTitle.style.textDecoration = 'line-through';
+      viewSchTitle.style.opacity = '0.6';
+    } else {
+      viewSchTitle.style.textDecoration = 'none';
+      viewSchTitle.style.opacity = '1';
+    }
     
     let timeInfo = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Ngày: ${sch.date}`;
     if (sch.time) timeInfo += ` - Lúc ${sch.time}`;
@@ -375,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const listData = await listRes.json();
           if (listData.items && listData.items.length > 0) {
             calendarIds = listData.items
-              .filter(cal => cal.selected || cal.primary || cal.summary === "Memoria - Công việc")
+              .filter(cal => cal.selected || cal.primary || cal.summary === "Công việc")
               .map(cal => cal.id);
           }
         }
@@ -462,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function saveSchedule() {
     const title = schTitleInput.value.trim();
     if (!title) {
-      scheduleErrorMsg.textContent = 'Vui lòng nhập tiêu đề sự kiện!';
+      scheduleErrorMsg.textContent = selectedType === 'task' ? 'Vui lòng nhập tiêu đề công việc!' : 'Vui lòng nhập tiêu đề sự kiện!';
       scheduleErrorMsg.style.display = 'block';
       return;
     }
@@ -509,17 +624,61 @@ document.addEventListener('DOMContentLoaded', () => {
       eventBody.recurrence = [`RRULE:${rrule}`];
     }
 
+    // Task-specific logic
+    if (selectedType === 'task') {
+      let isCompleted = false;
+      if (editingSchId) {
+        const sch = schedulesData.find(s => s.id === editingSchId);
+        if (sch) {
+          isCompleted = sch.title.startsWith("✓ ") || 
+                        (sch.rawEvent && (sch.rawEvent.colorId === "8" || sch.rawEvent.colorId === "2" || sch.rawEvent.colorId === "10")) || 
+                        (sch.rawEvent && sch.rawEvent.extendedProperties && sch.rawEvent.extendedProperties.private && sch.rawEvent.extendedProperties.private.status === "completed");
+        }
+      }
+      
+      let isTaskOverdue = false;
+      if (!isCompleted) {
+        const todayObj = new Date();
+        const todayStr = formatDateString(todayObj);
+        if (date < todayStr) {
+          isTaskOverdue = true;
+        } else if (date === todayStr && time) {
+          const nowTimeStr = todayObj.toTimeString().substring(0, 5);
+          if (time < nowTimeStr) {
+            isTaskOverdue = true;
+          }
+        }
+      }
+      
+      eventBody.summary = isCompleted ? (title.startsWith("✓ ") ? title : "✓ " + title) : title;
+      eventBody.colorId = isCompleted ? "2" : (isTaskOverdue ? "11" : "5");
+      eventBody.extendedProperties = {
+        private: {
+          status: isCompleted ? "completed" : "needsAction",
+          recurrence: recurrence
+        }
+      };
+    }
+
     saveScheduleBtn.disabled = true;
     saveScheduleBtn.textContent = 'Đang lưu...';
 
     try {
-      let url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+      let calendarId = 'primary';
+      if (selectedType === 'task') {
+        calendarId = window.tasksManager && window.tasksManager.calendarId;
+        if (!calendarId) {
+          throw new Error("Không tìm thấy lịch Công việc. Vui lòng thử lại sau.");
+        }
+      }
+
+      let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
       let method = 'POST';
 
       if (editingSchId) {
         const sch = schedulesData.find(s => s.id === editingSchId);
-        const calendarId = sch ? (sch.calendarId || 'primary') : 'primary';
-        url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${editingSchId}`;
+        const calId = sch ? (sch.calendarId || 'primary') : 'primary';
+        url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events/${editingSchId}`;
         method = 'PUT';
       }
 
@@ -531,6 +690,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!res.ok) throw new Error("Không thể cập nhật sự kiện.");
 
+      // Sync checklist
+      if (window.tasksManager && (selectedType === 'task' || (editingSchId && schedulesData.find(s => s.id === editingSchId)?.calendarId === window.tasksManager.calendarId))) {
+        window.tasksManager.loadTasks();
+      }
+
       closeModals();
       loadSchedules();
     } catch (e) {
@@ -539,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
       scheduleErrorMsg.style.display = 'block';
     } finally {
       saveScheduleBtn.disabled = false;
-      saveScheduleBtn.textContent = 'Lưu sự kiện';
+      saveScheduleBtn.textContent = selectedType === 'task' ? 'Lưu công việc' : 'Lưu sự kiện';
     }
   }
 
@@ -564,6 +728,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!res.ok) throw new Error("Không thể xóa sự kiện.");
+
+      // Sync checklist
+      if (window.tasksManager && sch && sch.calendarId === window.tasksManager.calendarId) {
+        window.tasksManager.loadTasks();
+      }
 
       // Load lại ngầm để đồng bộ dữ liệu
       loadSchedules();
@@ -625,6 +794,21 @@ document.addEventListener('DOMContentLoaded', () => {
   cancelScheduleBtn.addEventListener('click', closeModals);
   saveScheduleBtn.addEventListener('click', saveSchedule);
 
+  // Segmented control click events
+  schTypeEventBtn.addEventListener('click', () => {
+    selectedType = 'event';
+    schTypeEventBtn.classList.add('active');
+    schTypeTaskBtn.classList.remove('active');
+    saveScheduleBtn.textContent = 'Lưu sự kiện';
+  });
+
+  schTypeTaskBtn.addEventListener('click', () => {
+    selectedType = 'task';
+    schTypeTaskBtn.classList.add('active');
+    schTypeEventBtn.classList.remove('active');
+    saveScheduleBtn.textContent = 'Lưu công việc';
+  });
+
   schRecurrenceSelect.addEventListener('change', (e) => {
     schRecurrenceEndGroup.style.display = e.target.value === 'none' ? 'none' : 'block';
   });
@@ -655,6 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Lắng nghe thay đổi dữ liệu (từ tab công việc hoặc các pane khác)
   window.addEventListener('app_data_changed', checkAuthAndLoad);
+  window.addEventListener('task_changed', loadSchedules);
 
   // Initialize
   checkAuthAndLoad();
