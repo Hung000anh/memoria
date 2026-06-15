@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const listData = await listRes.json();
                 if (listData.items && listData.items.length > 0) {
                   calendarIds = listData.items
-                    .filter(cal => cal.selected || cal.primary || cal.summary === "Memoria - Công việc")
+                    .filter(cal => cal.selected || cal.primary || cal.summary === "Công việc")
                     .map(cal => cal.id);
                 }
               }
