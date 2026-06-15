@@ -1466,3 +1466,56 @@ h2 {
 .caret-icon {
   transition: transform 0.2s ease;
 }
+
+/* --- Segmented Control --- */
+.segment-control {
+  display: flex;
+  background-color: var(--sidebar-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.segment-btn {
+  flex: 1;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.segment-btn:hover:not(:disabled) {
+  color: var(--text-color);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.segment-btn.active[data-type="event"] {
+  background-color: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.segment-btn.active[data-type="task"] {
+  background-color: #3b82f6; /* Sleek premium color for tasks */
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.segment-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
