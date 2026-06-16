@@ -161,9 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const todayStr = formatDateString(new Date());
     
     if (dateStr === todayStr) {
-      selectedDateText.textContent = `Lịch trình hôm nay (${dateStr})`;
+      selectedDateText.textContent = `Sự kiện hôm nay (${dateStr})`;
     } else {
-      selectedDateText.textContent = `Lịch trình ngày ${dateStr}`;
+      selectedDateText.textContent = `Sự kiện ngày ${dateStr}`;
     }
 
     // 1. Render danh sách Sự kiện (Events)
@@ -738,7 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadSchedules();
     } catch (e) {
       console.error(e);
-      alert("Lỗi khi xóa lịch trình: " + e.message);
+      alert("Lỗi khi xóa sự kiện: " + e.message);
       // Khôi phục lại UI cũ nếu xóa lỗi
       schedulesData = backupSchedules;
       renderCalendar();
@@ -769,7 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
         msgDiv = document.createElement('div');
         msgDiv.id = 'scheduleAuthMessage';
         msgDiv.style.cssText = 'text-align: center; padding: 60px 20px; color: var(--text-muted);';
-        msgDiv.innerHTML = '<p>Vui lòng đăng nhập Google ở mục <strong>Công việc</strong> để đồng bộ và hiển thị Lịch trình.</p>';
+        msgDiv.innerHTML = '<p>Vui lòng đăng nhập Google ở mục <strong>Công việc</strong> để đồng bộ và hiển thị Sự kiện.</p>';
         document.getElementById('schedule-view').appendChild(msgDiv);
       } else {
         msgDiv.style.display = 'block';
