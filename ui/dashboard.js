@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // --- Sự kiện sắp tới (Google Calendar) ---
       const schedList = document.getElementById('dashScheduleList');
       if (schedList) {
-        schedList.innerHTML = '<li class="dash-empty">Đang tải lịch trình...</li>';
+        schedList.innerHTML = '<li class="dash-empty">Đang tải sự kiện...</li>';
         
         window.authService.checkSession().then(async (session) => {
           if (!session.loggedIn) {
