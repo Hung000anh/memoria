@@ -6,13 +6,13 @@ class TasksManager {
     this.calendarId = null;   // ID của lịch phụ "Công việc"
     this.tasks = [];
     this.completedExpanded = false; // Trạng thái co/giãn mục đã hoàn thành
-    this.expandedGroups = new Set(); // Các nhóm lặp lại đang mở rộng
-    
+    this.upcomingDisplayLimit = 5;
+    this.completedDisplayLimit = 5;
     // Bind DOM Elements
     this.tasksContentArea = document.getElementById("tasksContentArea");
     this.authMessageArea = document.getElementById("authMessageArea");
     this.authLoginLargeBtn = document.getElementById("authLoginLargeBtn");
-    
+
     this.taskList = document.getElementById("taskList");
     this.openAddTaskModalBtn = document.getElementById("openAddTaskModalBtn");
 
@@ -23,7 +23,7 @@ class TasksManager {
     this.taskNotesInput = document.getElementById("taskNotesInput");
     this.taskStartDueInput = document.getElementById("taskStartDueInput");
     this.taskDueInput = document.getElementById("taskDueInput");
-    
+
     this.taskStartTimeInputGroup = document.getElementById("taskStartTimeInputGroup");
     this.taskStartTimeInput = document.getElementById("taskStartTimeInput");
 
@@ -149,10 +149,10 @@ class TasksManager {
 
       const data = await res.json();
       const calendars = data.items || [];
-      
+
       // Tìm lịch phụ có tên "Công việc" (hoặc "Công việc" cũ để tương thích ngược)
       let taskCal = calendars.find(cal => cal.summary === "Công việc" || cal.summary === "Công việc");
-      
+
       if (taskCal) {
         this.calendarId = taskCal.id;
       } else {
@@ -166,7 +166,7 @@ class TasksManager {
             description: "Lịch lưu trữ các việc cần làm/công việc từ Memoria"
           })
         });
-        
+
         if (!createRes.ok) throw new Error("Không thể tạo lịch phụ Công việc.");
         const createdCal = await createRes.json();
         this.calendarId = createdCal.id;
@@ -177,11 +177,13 @@ class TasksManager {
     }
   }
   // Tải danh sách Công việc (Sự kiện trên lịch Công việc)
-  async loadTasks() {
+  async loadTasks(quiet = false) {
     if (!this.calendarId) return;
 
-    this.taskList.innerHTML = `<li style="text-align:center; color:var(--text-muted); padding: 20px;">Đang tải công việc...</li>`;
-    
+    if (!quiet) {
+      this.taskList.innerHTML = `<li style="text-align:center; color:var(--text-muted); padding: 20px;">Đang tải công việc...</li>`;
+    }
+
     try {
       const now = new Date();
       // Tải công việc từ 3 tháng trước đến 1 năm sau
@@ -196,7 +198,7 @@ class TasksManager {
 
       const data = await res.json();
       const items = data.items || [];
-      
+
       this.tasks = items
         .filter(ev => ev.status !== "cancelled")
         .map(ev => {
@@ -210,7 +212,7 @@ class TasksManager {
 
           const startDateStr = ev.start.dateTime ? ev.start.dateTime.split("T")[0] : ev.start.date;
           const startTimeStr = ev.start.dateTime ? ev.start.dateTime.split("T")[1].substring(0, 5) : "";
-          
+
           let dateStr = ev.end.dateTime ? ev.end.dateTime.split("T")[0] : ev.end.date;
           if (!ev.end.dateTime && ev.end.date) {
             dateStr = this.getPreviousDay(ev.end.date);
@@ -245,19 +247,36 @@ class TasksManager {
     }
   }
 
-  // Định dạng ngày hạn chót
-  formatTaskDue(dateStr, timeStr, allDay, startTimeStr) {
+  // Định dạng thời gian hiển thị (Hỗ trợ khoảng thời gian)
+  formatTaskDue(startDateStr, dateStr, timeStr, allDay, startTimeStr) {
     if (!dateStr) return "";
     try {
-      const [y, m, d] = dateStr.split("-");
-      const formattedDate = `${d}/${m}/${y}`;
+      const formatD = (ds) => {
+        if (!ds) return "";
+        const [y, m, d] = ds.split("-");
+        return `${d}/${m}/${y}`;
+      };
+      const formattedEnd = formatD(dateStr);
+      const formattedStart = formatD(startDateStr);
+
       if (allDay || !timeStr) {
-        return formattedDate;
+        if (startDateStr && startDateStr !== dateStr) {
+          return `Từ ${formattedStart} đến ${formattedEnd}`;
+        }
+        return `Hạn: ${formattedEnd}`;
       }
+
+      if (startDateStr && startDateStr !== dateStr) {
+        if (startTimeStr) {
+          return `Từ ${startTimeStr} (${formattedStart}) đến ${timeStr} (${formattedEnd})`;
+        }
+        return `Từ ${formattedStart} đến ${timeStr} (${formattedEnd})`;
+      }
+
       if (startTimeStr) {
-        return `${formattedDate} từ ${startTimeStr} đến ${timeStr}`;
+        return `Hạn: ${formattedEnd} từ ${startTimeStr} đến ${timeStr}`;
       }
-      return `${formattedDate} lúc ${timeStr}`;
+      return `Hạn: ${formattedEnd} lúc ${timeStr}`;
     } catch (e) {
       return dateStr;
     }
@@ -314,7 +333,7 @@ class TasksManager {
         ${task.notes ? `<div class="task-notes" style="font-size: 12px; color: var(--text-muted); margin-top: 4px; white-space: pre-wrap; word-break: break-word;">${task.notes}</div>` : ''}
         ${task.date ? `<div class="task-due" style="font-size: 11px; color: var(--primary); margin-top: 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          <span>Hạn: ${this.formatTaskDue(task.date, task.time, task.allDay, task.startTime)}</span>
+          <span>${this.formatTaskDue(task.startDate, task.date, task.time, task.allDay, task.startTime)}</span>
           ${repIcon}
           ${overdueLabel}
         </div>` : ''}
@@ -360,62 +379,29 @@ class TasksManager {
     return li;
   }
 
-  // Hiển thị danh sách Tasks lên UI (Gom nhóm các task lặp lại và chia làm 3 phần)
+  // Hiển thị danh sách Tasks lên UI
   renderTasks() {
     this.taskList.innerHTML = "";
-    
+
     const todayObj = new Date();
     const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
 
-    // Tách các công việc đã hoàn thành và chưa hoàn thành riêng biệt
     const activeTasks = this.tasks.filter(t => t.status !== "completed");
     const completedTasks = this.tasks.filter(t => t.status === "completed");
 
-    // Chỉ gom nhóm các công việc lặp lại ĐANG HOẠT ĐỘNG
-    const groups = {};
-    const singleTasks = [];
-
-    activeTasks.forEach(task => {
-      const recId = task.rawEvent.recurringEventId;
-      if (recId && task.date && task.date > todayStr) {
-        const timeKey = task.allDay ? "allday" : task.time;
-        const groupKey = `${recId}_${task.title}_${task.notes}_${timeKey}`;
-        if (!groups[groupKey]) {
-          groups[groupKey] = {
-            key: groupKey,
-            title: task.title,
-            notes: task.notes,
-            recurrence: task.recurrence,
-            instances: [],
-            isRecurring: true
-          };
-        }
-        groups[groupKey].instances.push(task);
-      } else {
-        singleTasks.push(task);
-      }
-    });
-
-    // Sắp xếp các instance trong mỗi group
-    Object.keys(groups).forEach(groupKey => {
-      const group = groups[groupKey];
-      group.instances.sort((a, b) => new Date(a.date + (a.time ? "T" + a.time : "")) - new Date(b.date + (b.time ? "T" + b.time : "")));
-    });
-
-    // Các phần danh sách tương ứng theo yêu cầu của user
     const todayItems = [];
     const overdueItems = [];
     const upcomingItems = [];
-    const completedItems = [...completedTasks]; // Từng sự kiện hoàn thành hiển thị riêng lẻ trong mục hoàn thành
+    const completedItems = [...completedTasks];
 
-    // Phân loại active single tasks
-    singleTasks.forEach(task => {
+    // Phân loại active tasks (không gom nhóm)
+    activeTasks.forEach(task => {
       const status = this.getTaskStatusClass(task);
       if (status === "status-overdue") {
         overdueItems.push(task);
       } else {
-        // Chỉ hiện trong phần Công việc hôm nay nếu hạn chót là hôm nay hoặc không cài ngày
-        if (!task.date || task.date === todayStr) {
+        const isToday = !task.date || task.date === todayStr || (task.startDate && task.startDate <= todayStr && task.date >= todayStr);
+        if (isToday) {
           todayItems.push(task);
         } else if (task.date > todayStr) {
           upcomingItems.push(task);
@@ -423,45 +409,17 @@ class TasksManager {
       }
     });
 
-    // Phân loại active groups
-    Object.keys(groups).forEach(groupKey => {
-      const group = groups[groupKey];
-      const earliestActive = group.instances[0];
-      if (earliestActive) {
-        const status = this.getTaskStatusClass(earliestActive);
-        if (status === "status-overdue") {
-          overdueItems.push(group);
-        } else {
-          // Chỉ hiển thị trong Công việc hôm nay nếu sự kiện tiếp theo là hôm nay
-          if (earliestActive.date === todayStr) {
-            todayItems.push(group);
-          } else if (earliestActive.date > todayStr) {
-            upcomingItems.push(group);
-          }
-        }
-      }
-    });
-
-    // Hàm phụ để lấy thời gian so sánh phục vụ việc sắp xếp
     const getCompareDate = (item) => {
-      if (item.isRecurring) {
-        const earliestActive = item.instances[0];
-        if (earliestActive) {
-          return new Date(earliestActive.date + (earliestActive.time ? "T" + earliestActive.time : ""));
-        }
-        return new Date();
-      } else {
-        return new Date(item.date + (item.time ? "T" + item.time : ""));
-      }
+      const d = item.startDate || item.date;
+      const t = item.startTime || item.time || "";
+      return new Date(d + (t ? "T" + t : ""));
     };
 
-    // Sắp xếp
     todayItems.sort((a, b) => getCompareDate(a) - getCompareDate(b));
     overdueItems.sort((a, b) => getCompareDate(a) - getCompareDate(b));
     upcomingItems.sort((a, b) => getCompareDate(a) - getCompareDate(b));
     completedItems.sort((a, b) => getCompareDate(b) - getCompareDate(a));
 
-    // Hàm phụ render Header cho các section
     const renderSectionHeader = (title, count, isCollapsible = false, isCollapsed = false, onToggle = null) => {
       const headerDiv = document.createElement("div");
       headerDiv.className = "task-section-header";
@@ -495,6 +453,9 @@ class TasksManager {
     };
 
     // --- RENDER PHẦN 1: CÔNG VIỆC HÔM NAY ---
+    const todayHeader = renderSectionHeader("Công việc hôm nay", todayItems.length);
+    this.taskList.appendChild(todayHeader);
+
     if (todayItems.length === 0) {
       const emptyLi = document.createElement("li");
       emptyLi.style.cssText = "text-align:center; color:var(--text-muted); padding: 16px 0; font-style:italic; font-size:13px; list-style:none;";
@@ -502,30 +463,45 @@ class TasksManager {
       this.taskList.appendChild(emptyLi);
     } else {
       todayItems.forEach(item => {
-        const li = item.isRecurring ? this.createTaskGroupEl(item) : this.createTaskItemEl(item, false);
+        const li = this.createTaskItemEl(item, false);
         this.taskList.appendChild(li);
       });
     }
 
-    // --- RENDER PHẦN 2: CÔNG VIỆC QUÁ HẠN ---
+    // --- RENDER PHẦN 2: CÔNG VIỆC SẮP TỚI ---
+    if (upcomingItems.length > 0) {
+      const upcomingHeader = renderSectionHeader("Công việc sắp tới", upcomingItems.length);
+      this.taskList.appendChild(upcomingHeader);
+
+      const limit = this.upcomingDisplayLimit;
+      const visibleUpcoming = upcomingItems.slice(0, limit);
+
+      visibleUpcoming.forEach(item => {
+        const li = this.createTaskItemEl(item, false);
+        this.taskList.appendChild(li);
+      });
+
+      if (upcomingItems.length > limit) {
+        const loadMoreBtn = document.createElement("li");
+        loadMoreBtn.className = "load-more-btn";
+        loadMoreBtn.style.cssText = "text-align: center; color: var(--primary); padding: 12px; cursor: pointer; font-size: 13px; font-weight: 500; list-style: none; background: var(--nav-hover-bg); border-radius: 8px; margin-top: 8px; transition: background-color 0.2s;";
+        loadMoreBtn.textContent = `Xem thêm ${upcomingItems.length - limit} công việc tiếp theo...`;
+        loadMoreBtn.addEventListener("click", () => {
+          this.upcomingDisplayLimit += 10;
+          this.renderTasks();
+        });
+        this.taskList.appendChild(loadMoreBtn);
+      }
+    }
+
+    // --- RENDER PHẦN 3: CÔNG VIỆC QUÁ HẠN ---
     if (overdueItems.length > 0) {
       const overdueHeader = renderSectionHeader("Công việc quá hạn", overdueItems.length);
       overdueHeader.querySelector("span").style.color = "#ef4444";
       this.taskList.appendChild(overdueHeader);
 
       overdueItems.forEach(item => {
-        const li = item.isRecurring ? this.createTaskGroupEl(item) : this.createTaskItemEl(item, false);
-        this.taskList.appendChild(li);
-      });
-    }
-
-    // --- RENDER PHẦN 3: SỰ KIỆN SẮP TỚI ---
-    if (upcomingItems.length > 0) {
-      const upcomingHeader = renderSectionHeader("Sự kiện sắp tới", upcomingItems.length);
-      this.taskList.appendChild(upcomingHeader);
-
-      upcomingItems.forEach(item => {
-        const li = item.isRecurring ? this.createTaskGroupEl(item) : this.createTaskItemEl(item, false);
+        const li = this.createTaskItemEl(item, false);
         this.taskList.appendChild(li);
       });
     }
@@ -533,10 +509,10 @@ class TasksManager {
     // --- RENDER PHẦN 4: CÔNG VIỆC ĐÃ HOÀN THÀNH ---
     if (completedItems.length > 0) {
       const completedHeader = renderSectionHeader(
-        "Đã hoàn thành", 
-        completedItems.length, 
-        true, 
-        !this.completedExpanded, 
+        "Đã hoàn thành",
+        completedItems.length,
+        true,
+        !this.completedExpanded,
         () => {
           this.completedExpanded = !this.completedExpanded;
           this.renderTasks();
@@ -547,48 +523,32 @@ class TasksManager {
       if (this.completedExpanded) {
         const completedUl = document.createElement("ul");
         completedUl.style.cssText = "margin: 0; padding: 0; list-style: none;";
-        completedItems.forEach(item => {
-          const li = this.createTaskItemEl(item, true); // Các sự kiện đã hoàn thành luôn hiển thị dạng đơn lẻ trong phần đã hoàn thành
+
+        const completedLimit = this.completedDisplayLimit;
+        const visibleCompleted = completedItems.slice(0, completedLimit);
+
+        visibleCompleted.forEach(item => {
+          const li = this.createTaskItemEl(item, true);
           completedUl.appendChild(li);
         });
+
+        if (completedItems.length > completedLimit) {
+          const loadMoreCompletedBtn = document.createElement("li");
+          loadMoreCompletedBtn.style.cssText = "text-align: center; color: var(--text-muted); padding: 12px; cursor: pointer; font-size: 13px; list-style: none; background: var(--nav-hover-bg); border-radius: 8px; margin-top: 8px; transition: background-color 0.2s;";
+          loadMoreCompletedBtn.textContent = `Xem thêm ${completedItems.length - completedLimit} công việc đã hoàn thành...`;
+          loadMoreCompletedBtn.addEventListener("click", () => {
+            this.completedDisplayLimit += 10;
+            this.renderTasks();
+          });
+          completedUl.appendChild(loadMoreCompletedBtn);
+        }
+
         this.taskList.appendChild(completedUl);
       }
     }
   }
 
-  // Định dạng thời gian cho các occurrence trong chuỗi lặp
-  formatOccurrenceTime(dateStr, timeStr, allDay) {
-    if (!dateStr) return "";
-    try {
-      const dateObj = new Date(dateStr);
-      const today = new Date();
-      const tomorrow = new Date();
-      tomorrow.setDate(today.getDate() + 1);
 
-      const isToday = dateObj.toDateString() === today.toDateString();
-      const isTomorrow = dateObj.toDateString() === tomorrow.toDateString();
-
-      const [y, m, d] = dateStr.split("-");
-      let displayDate = `${d}/${m}/${y}`;
-
-      if (isToday) {
-        displayDate = "Hôm nay";
-      } else if (isTomorrow) {
-        displayDate = "Ngày mai";
-      } else {
-        const weekdays = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
-        const dayName = weekdays[dateObj.getDay()];
-        displayDate = `${dayName}, ${d}/${m}/${y}`;
-      }
-
-      if (allDay || !timeStr) {
-        return displayDate;
-      }
-      return `${displayDate} lúc ${timeStr}`;
-    } catch (e) {
-      return dateStr;
-    }
-  }
 
 
 
@@ -615,134 +575,7 @@ class TasksManager {
     return "status-pending";
   }
 
-  // Tạo Element cho Nhóm Công việc Lặp lại
-  createTaskGroupEl(group) {
-    const li = document.createElement("li");
-    li.style.alignItems = "stretch";
 
-    const isExpanded = this.expandedGroups.has(group.key);
-    const earliestActive = group.instances[0];
-    const displayTask = earliestActive || group.instances[group.instances.length - 1];
-
-    let groupStatusClass = "status-pending";
-    if (earliestActive) {
-      groupStatusClass = this.getTaskStatusClass(earliestActive);
-    }
-    li.className = `task-item task-group ${groupStatusClass}`;
-
-    const repIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#10b981; margin-left:4px; vertical-align:middle;" title="Lặp lại"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>`;
-
-    li.innerHTML = `
-      <div class="task-group-main-row" style="display: flex; align-items: flex-start; width: 100%; gap: 10px;">
-        <button class="task-group-toggle-btn" title="Xem danh sách lặp" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; margin-top: 2px;">
-          <span class="toggle-symbol" style="font-size: 16px; font-family: monospace; line-height: 1; font-weight: bold; width: 12px; text-align: center;">${isExpanded ? '−' : '+'}</span>
-        </button>
-        
-        <div class="task-item-content" style="flex: 1; min-width: 0; cursor: pointer;">
-          <div class="task-title" style="font-weight: 500; font-size: 14px; word-break: break-word;">
-            <span>${group.title}</span>
-            ${repIcon}
-          </div>
-          ${group.notes ? `<div class="task-notes" style="font-size: 12px; color: var(--text-muted); margin-top: 4px; white-space: pre-wrap; word-break: break-word;">${group.notes}</div>` : ''}
-          <div class="task-due" style="font-size: 11px; color: var(--primary); margin-top: 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>${earliestActive ? `Tiếp theo: ${this.formatTaskDue(earliestActive.date, earliestActive.time, earliestActive.allDay)}` : 'Đã hoàn thành hết chu kỳ hiện tại'}</span>
-          </div>
-        </div>
-
-        <div class="task-actions" style="display: flex; gap: 6px; align-items: center; margin-top: -2px;">
-          <button class="task-edit-btn" title="Sửa" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: background-color 0.2s;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-          </button>
-          <button class="task-delete-btn" title="Xóa" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: background-color 0.2s;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="task-group-occurrences" style="display: ${isExpanded ? 'flex' : 'none'}; width: 100%; margin-top: 10px; padding-left: 26px; border-left: 2px dashed var(--border-color); flex-direction: column; gap: 8px;">
-        <!-- Danh sách occurrences sẽ được chèn ở dưới -->
-      </div>
-    `;
-
-    const occurrencesContainer = li.querySelector(".task-group-occurrences");
-
-    // Chỉ hiển thị tối đa 10 sự kiện lặp tiếp theo đang hoạt động
-    const visibleOccurrences = group.instances.slice(0, 10);
-    visibleOccurrences.forEach(inst => {
-      const occurrenceDiv = document.createElement("div");
-      const statusClass = this.getTaskStatusClass(inst);
-      occurrenceDiv.className = `occurrence-item ${statusClass}`;
-      occurrenceDiv.dataset.instanceId = inst.id;
-      occurrenceDiv.style.cssText = "display: flex; align-items: center; gap: 10px; padding: 4px 0; font-size: 13px;";
-
-      const isInstCompleted = inst.status === 'completed';
-
-      occurrenceDiv.innerHTML = `
-        <input type="checkbox" class="occurrence-checkbox" ${isInstCompleted ? "checked" : ""} style="cursor: pointer; width: 16px; height: 16px; margin: 0; flex-shrink: 0;">
-        <span class="occurrence-time" style="flex: 1; min-width: 0; word-break: break-word;">
-          ${this.formatOccurrenceTime(inst.date, inst.time, inst.allDay)}
-        </span>
-      `;
-      
-      const occurrenceCheckbox = occurrenceDiv.querySelector(".occurrence-checkbox");
-      occurrenceCheckbox.addEventListener("change", (e) => {
-        this.toggleTaskStatus(inst.id, e.target.checked);
-      });
-
-      occurrencesContainer.appendChild(occurrenceDiv);
-    });
-
-    if (group.instances.length > 10) {
-      const remainingCount = group.instances.length - 10;
-      const footerDiv = document.createElement("div");
-      footerDiv.className = "occurrence-footer";
-      footerDiv.style.cssText = "font-size: 12px; color: var(--text-muted); padding-left: 26px; font-style: italic; margin-top: 4px;";
-      footerDiv.textContent = `... và ${remainingCount} sự kiện khác`;
-      occurrencesContainer.appendChild(footerDiv);
-    }
-
-    const toggleBtn = li.querySelector(".task-group-toggle-btn");
-    const toggleSymbol = li.querySelector(".toggle-symbol");
-    const contentArea = li.querySelector(".task-item-content");
-
-    const toggleExpand = (e) => {
-      e.stopPropagation();
-      const currentlyExpanded = this.expandedGroups.has(group.key);
-      if (currentlyExpanded) {
-        this.expandedGroups.delete(group.key);
-        occurrencesContainer.style.display = "none";
-        toggleSymbol.textContent = "+";
-      } else {
-        this.expandedGroups.add(group.key);
-        occurrencesContainer.style.display = "flex";
-        toggleSymbol.textContent = "−";
-      }
-    };
-
-    toggleBtn.addEventListener("click", toggleExpand);
-    contentArea.addEventListener("click", toggleExpand);
-
-    const editBtn = li.querySelector(".task-edit-btn");
-    editBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      this.openTaskModal(displayTask);
-    });
-
-    const deleteBtn = li.querySelector(".task-delete-btn");
-    deleteBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      this.deleteTask(displayTask.id);
-    });
-
-    return li;
-  }
 
 
   // Bật/tắt trạng thái hoàn thành công việc (chỉ hoàn thành 1 occurrence cho task lặp)
@@ -753,7 +586,7 @@ class TasksManager {
 
     const task = this.tasks[taskIndex];
     const backupStatus = task.status;
-    
+
     // Cập nhật UI ngay lập tức
     task.status = status;
     this.renderTasks();
@@ -776,7 +609,7 @@ class TasksManager {
       });
 
       if (!res.ok) throw new Error("Google Calendar API trả về lỗi " + res.status);
-      this.loadTasks();
+      this.loadTasks(true);
       window.dispatchEvent(new CustomEvent("task_changed"));
     } catch (e) {
       console.error(e);
@@ -786,26 +619,20 @@ class TasksManager {
     }
   }
 
-  async deleteTask(taskId) {
-    const backupTasks = [...this.tasks];
-    const task = this.tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    if (!confirm("Bạn có chắc chắn muốn xóa công việc này không?")) return;
-
+  async executeDeleteTask(taskIdToDel, backupTasks) {
     // Optimistic UI update
-    this.tasks = this.tasks.filter(t => t.id !== taskId);
+    this.tasks = this.tasks.filter(t => t.id !== taskIdToDel && t.rawEvent?.recurringEventId !== taskIdToDel);
     this.renderTasks();
 
     try {
-      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(this.calendarId)}/events/${taskId}`;
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(this.calendarId)}/events/${taskIdToDel}`;
       const res = await this.authService.fetchWithAuth(url, {
         method: "DELETE"
       });
 
       if (!res.ok) throw new Error("Google Calendar API trả về lỗi " + res.status);
-      this.loadTasks();
-      
+      this.loadTasks(true);
+
       // Dispatch event to sync with schedule.js
       window.dispatchEvent(new CustomEvent("task_changed"));
     } catch (e) {
@@ -813,6 +640,55 @@ class TasksManager {
       alert("Lỗi khi xóa công việc: " + e.message);
       this.tasks = backupTasks;
       this.renderTasks();
+    }
+  }
+
+  async deleteTask(taskId) {
+    const backupTasks = [...this.tasks];
+    const task = this.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    if (task.rawEvent && task.rawEvent.recurringEventId) {
+      const overlay = document.createElement("div");
+      overlay.style.cssText = "position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;";
+      const dialog = document.createElement("div");
+      dialog.style.cssText = "background: var(--bg-color, #fff); padding: 20px; border-radius: 8px; width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 15px;";
+      dialog.innerHTML = `
+        <div style="font-weight: 600; font-size: 15px; color: var(--text-color, #000);">Tùy chọn xóa công việc</div>
+        <div style="font-size: 13px; color: var(--text-muted, #666);">Đây là một công việc lặp lại. Bạn muốn xóa công việc nào?</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button id="delThisBtn" style="padding: 8px 12px; border: 1px solid var(--border-color, #ccc); background: var(--bg-color, #fff); color: var(--text-color, #000); border-radius: 6px; cursor: pointer; text-align: left; font-size: 13px; transition: background-color 0.2s;">Chỉ công việc này</button>
+          <button id="delAllBtn" style="padding: 8px 12px; border: 1px solid var(--border-color, #ccc); background: var(--bg-color, #fff); color: var(--text-color, #000); border-radius: 6px; cursor: pointer; text-align: left; font-size: 13px; transition: background-color 0.2s;">Tất cả công việc</button>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 5px;">
+          <button id="delCancelBtn" style="padding: 6px 12px; background: none; border: none; color: var(--text-muted, #666); cursor: pointer; font-size: 13px;">Hủy</button>
+        </div>
+      `;
+      overlay.appendChild(dialog);
+      document.body.appendChild(overlay);
+
+      // Thêm hover effect
+      const btnHover = (btn) => {
+        btn.addEventListener("mouseenter", () => btn.style.background = "var(--nav-hover-bg, #f3f4f6)");
+        btn.addEventListener("mouseleave", () => btn.style.background = "var(--bg-color, #fff)");
+      };
+      btnHover(document.getElementById("delThisBtn"));
+      btnHover(document.getElementById("delAllBtn"));
+
+      document.getElementById("delThisBtn").onclick = () => {
+        document.body.removeChild(overlay);
+        this.executeDeleteTask(taskId, backupTasks);
+      };
+      document.getElementById("delAllBtn").onclick = () => {
+        document.body.removeChild(overlay);
+        this.executeDeleteTask(task.rawEvent.recurringEventId, backupTasks);
+      };
+      document.getElementById("delCancelBtn").onclick = () => {
+        document.body.removeChild(overlay);
+      };
+    } else {
+      if (!confirm("Bạn có chắc chắn muốn xóa công việc này không?")) return;
+      this.executeDeleteTask(taskId, backupTasks);
     }
   }
 
@@ -832,7 +708,7 @@ class TasksManager {
 
       let masterEvent = task.rawEvent;
       const recId = task.rawEvent.recurringEventId;
-      
+
       // Nếu là một occurrence lặp lại, fetch master event để lấy toàn bộ recurrence rule
       if (recId) {
         try {
@@ -854,7 +730,7 @@ class TasksManager {
         this.taskTitleInput.value = this.taskTitleInput.value.substring(2);
       }
       this.taskNotesInput.value = masterEvent.description || "";
-      
+
       const startDateStr = masterEvent.start.dateTime ? masterEvent.start.dateTime.split("T")[0] : masterEvent.start.date;
       let dueDateStr = masterEvent.end.dateTime ? masterEvent.end.dateTime.split("T")[0] : masterEvent.end.date;
       if (!masterEvent.end.dateTime && masterEvent.end.date) {
@@ -890,12 +766,12 @@ class TasksManager {
       this.taskModalTitle.textContent = "Thêm công việc";
       this.taskTitleInput.value = "";
       this.taskNotesInput.value = "";
-      
+
       const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       if (this.taskStartDueInput) this.taskStartDueInput.value = todayStr;
       if (this.taskDueInput) this.taskDueInput.value = todayStr;
-      
+
       if (allDayCheckbox) allDayCheckbox.checked = true;
       if (timeInputGroup) timeInputGroup.style.display = "none";
       if (this.taskStartTimeInputGroup) this.taskStartTimeInputGroup.style.display = "none";
@@ -979,7 +855,7 @@ class TasksManager {
     const allDay = allDayCheckbox ? allDayCheckbox.checked : true;
     const timeInput = document.getElementById("taskTimeInput");
     const startTimeInput = document.getElementById("taskStartTimeInput");
-    
+
     const startTime = allDay ? "" : (startTimeInput ? startTimeInput.value : "");
     const time = allDay ? "" : (timeInput ? timeInput.value : "");
     const recurrence = this.taskRecurrenceSelect.value;
@@ -1011,34 +887,18 @@ class TasksManager {
       }
     }
 
-    let isTaskOverdue = false;
-    if (!isCompleted) {
-      if (!allDay && time) {
-        const dueTime = new Date(`${date}T${time}:00`);
-        if (dueTime < new Date()) {
-          isTaskOverdue = true;
-        }
-      } else {
-        const todayObj = new Date();
-        const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
-        if (date < todayStr) {
-          isTaskOverdue = true;
-        }
-      }
-    }
-
     const eventBody = {
       summary: title,
       description: notes,
-      colorId: isCompleted ? "2" : (isTaskOverdue ? "11" : "5"),
+      colorId: isCompleted ? "2" : "5",
       start: !allDay && startTime ? {
-        dateTime: `${date}T${startTime}:00`,
+        dateTime: `${startDate}T${startTime}:00`,
         timeZone
       } : {
-        date: date
+        date: startDate
       },
       end: !allDay && time ? {
-        dateTime: this.getEndTime(date, time),
+        dateTime: `${date}T${time}:00`,
         timeZone
       } : {
         date: this.getNextDay(date)
@@ -1069,7 +929,7 @@ class TasksManager {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(eventBody)
         });
-        if (!res.ok) throw new Error("Lỗi cập nhật sự kiện: " + res.status);
+        if (!res.ok) throw new Error("Lỗi cập nhật công việc: " + res.status);
       } else {
         const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(this.calendarId)}/events`;
         const res = await this.authService.fetchWithAuth(url, {
@@ -1077,11 +937,11 @@ class TasksManager {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(eventBody)
         });
-        if (!res.ok) throw new Error("Lỗi tạo mới sự kiện: " + res.status);
+        if (!res.ok) throw new Error("Lỗi tạo mới công việc: " + res.status);
       }
-      
+
       this.closeTaskModal();
-      this.loadTasks();
+      this.loadTasks(true);
 
       // Thông báo cho schedule.js cập nhật nếu có
       window.dispatchEvent(new CustomEvent("task_changed"));
