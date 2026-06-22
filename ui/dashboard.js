@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. Fetch song song các sự kiện sắp tới từ các lịch được chọn
             const eventPromises = calendarIds.map(async (calendarId) => {
               try {
-                const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${nowISO}&maxResults=10&singleEvents=true`;
+                const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${nowISO}&maxResults=100&singleEvents=true`;
                 const res = await window.authService.fetchWithAuth(url);
                 if (!res.ok) return [];
                 const data = await res.json();
