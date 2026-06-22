@@ -27,7 +27,12 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": [
+        "content/modules/clipboard.js",
+        "content/modules/reminder.js",
+        "content/modules/translate.js",
+        "content/modules/allowCopy.js"
+      ]
     },
     {
       "matches": ["<all_urls>"],

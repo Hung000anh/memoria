@@ -147,6 +147,23 @@ document.addEventListener('DOMContentLoaded', () => {
     saveChatState();
   }
 
+  function getEndTimeHelper(dateStr, timeStr) {
+    const [hours, minutes] = timeStr.split(':');
+    const d = new Date(`${dateStr}T00:00:00`);
+    d.setHours(parseInt(hours) + 1, parseInt(minutes));
+    return d.toISOString();
+  }
+
+  function getNextDayHelper(dateStr) {
+    const [y, m, d] = dateStr.split('-');
+    const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    dateObj.setDate(dateObj.getDate() + 1);
+    const ny = dateObj.getFullYear();
+    const nm = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const nd = dateObj.getDate().toString().padStart(2, '0');
+    return `${ny}-${nm}-${nd}`;
+  }
+
   const toolsDef = [{
     functionDeclarations: [
       {
@@ -188,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       {
         name: "create_schedule",
-        description: "Tạo một sự kiện mới.",
+        description: "Tạo một sự kiện lịch mới (sự kiện cá nhân/họp/học tập).",
         parameters: {
           type: "OBJECT",
           properties: {
@@ -196,6 +213,21 @@ document.addEventListener('DOMContentLoaded', () => {
             content: { type: "STRING", description: "Mô tả sự kiện" },
             date: { type: "STRING", description: "Ngày (YYYY-MM-DD)" },
             time: { type: "STRING", description: "Giờ (HH:MM)" },
+            recurrence: { type: "STRING", description: "Lặp lại: none, daily, weekly, monthly, yearly" }
+          },
+          required: ["title", "date", "recurrence"]
+        }
+      },
+      {
+        name: "create_task",
+        description: "Tạo một công việc/nhiệm vụ mới cần hoàn thành (Task list).",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            title: { type: "STRING", description: "Tên công việc" },
+            content: { type: "STRING", description: "Mô tả chi tiết công việc" },
+            date: { type: "STRING", description: "Ngày hạn hoàn thành (YYYY-MM-DD)" },
+            time: { type: "STRING", description: "Giờ hạn hoàn thành (HH:MM), tùy chọn" },
             recurrence: { type: "STRING", description: "Lặp lại: none, daily, weekly, monthly, yearly" }
           },
           required: ["title", "date", "recurrence"]
@@ -230,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function executeToolCall(call) {
     return new Promise((resolve) => {
-      chrome.storage.local.get({ notes: [], schedules: [], customReminders: [] }, (data) => {
+      chrome.storage.local.get({ notes: [], customReminders: [] }, async (data) => {
         try {
           if (call.name === "create_note") {
             const newNote = {
@@ -275,21 +307,118 @@ document.addEventListener('DOMContentLoaded', () => {
               resolve({ error: "Không tìm thấy ghi chú với ID cung cấp." });
             }
           } else if (call.name === "create_schedule") {
-            const sch = {
-              id: Date.now(),
-              title: call.args.title || 'Sự kiện',
-              content: call.args.content || '',
-              date: call.args.date,
-              time: call.args.time || '',
-              recurrence: call.args.recurrence || 'none',
-              recurrenceEndDate: ''
+            const title = call.args.title || 'Sự kiện';
+            const date = call.args.date;
+            const time = call.args.time || '';
+            const recurrence = call.args.recurrence || 'none';
+            const content = call.args.content || '';
+
+            if (!date) {
+              resolve({ error: "Thiếu ngày cho sự kiện." });
+              return;
+            }
+
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const eventBody = {
+              summary: title,
+              description: content,
+              start: time ? { dateTime: `${date}T${time}:00`, timeZone } : { date: date },
+              end: time ? { dateTime: getEndTimeHelper(date, time), timeZone } : { date: getNextDayHelper(date) }
             };
-            data.schedules.push(sch);
-            if (sch.time) chrome.runtime.sendMessage({ action: 'create_alarm', schedule: sch });
-            chrome.storage.local.set({ schedules: data.schedules }, () => {
+
+            if (recurrence !== 'none') {
+              eventBody.recurrence = [`RRULE:FREQ=${recurrence.toUpperCase()}`];
+            }
+
+            try {
+              const res = await window.authService.fetchWithAuth("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventBody)
+              });
+              if (!res.ok) throw new Error("Google Calendar API trả về lỗi: " + res.status);
+              
+              // Trigger reload in UI
               window.dispatchEvent(new Event('app_data_changed'));
+              if (window.loadSchedules) window.loadSchedules();
               resolve({ result: "Success" });
-            });
+            } catch (err) {
+              resolve({ error: err.message });
+            }
+
+          } else if (call.name === "create_task") {
+            const title = call.args.title || 'Công việc';
+            const date = call.args.date;
+            const time = call.args.time || '';
+            const recurrence = call.args.recurrence || 'none';
+            const content = call.args.content || '';
+
+            if (!date) {
+              resolve({ error: "Thiếu ngày cho công việc." });
+              return;
+            }
+
+            let calendarId = window.tasksManager ? window.tasksManager.calendarId : null;
+            if (!calendarId) {
+              try {
+                const listUrl = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
+                const res = await window.authService.fetchWithAuth(listUrl);
+                if (res.ok) {
+                  const data = await res.json();
+                  const calendars = data.items || [];
+                  let taskCal = calendars.find(cal => cal.summary === "Công việc");
+                  if (taskCal) {
+                    calendarId = taskCal.id;
+                  }
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }
+
+            if (!calendarId) {
+              resolve({ error: "Không tìm thấy lịch phụ 'Công việc'. Vui lòng đăng nhập Google và mở tab Công việc trước." });
+              return;
+            }
+
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const eventBody = {
+              summary: title,
+              description: content,
+              start: time ? { dateTime: `${date}T${time}:00`, timeZone } : { date: date },
+              end: time ? { dateTime: getEndTimeHelper(date, time), timeZone } : { date: getNextDayHelper(date) },
+              colorId: "5",
+              extendedProperties: {
+                private: {
+                  status: "needsAction",
+                  recurrence: recurrence
+                }
+              }
+            };
+
+            if (recurrence !== 'none') {
+              eventBody.recurrence = [`RRULE:FREQ=${recurrence.toUpperCase()}`];
+            }
+
+            try {
+              const res = await window.authService.fetchWithAuth(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventBody)
+              });
+              if (!res.ok) throw new Error("Google Calendar API (tasks) trả về lỗi: " + res.status);
+
+              // Trigger reload in UI
+              window.dispatchEvent(new Event('app_data_changed'));
+              window.dispatchEvent(new CustomEvent("task_changed"));
+              if (window.tasksManager && typeof window.tasksManager.loadTasks === "function") {
+                window.tasksManager.loadTasks();
+              }
+              resolve({ result: "Success" });
+            } catch (err) {
+              resolve({ error: err.message });
+            }
+
           } else if (call.name === "create_reminder") {
             const rem = {
               id: Date.now(),
