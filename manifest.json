@@ -15,7 +15,8 @@
     "sidePanel",
     "scripting",
     "notifications",
-    "idle"
+    "idle",
+    "identity"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -27,6 +28,12 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["inject.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
     }
   ],
   "action": {

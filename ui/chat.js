@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       {
         name: "create_schedule",
-        description: "Tạo một sự kiện/lịch trình mới.",
+        description: "Tạo một sự kiện mới.",
         parameters: {
           type: "OBJECT",
           properties: {
@@ -384,7 +384,7 @@ Thời gian hiện tại: ${new Date().toLocaleString()}
 
 DỮ LIỆU HIỆN TẠI CỦA NGƯỜI DÙNG:
 - Ghi chú: ${notesText || 'Không có'}
-- Sự kiện/Lịch trình: ${schText || 'Không có'}
+- Sự kiện: ${schText || 'Không có'}
 - Thời tiết hiện tại của người dùng: ${localWeather}
 - Thời gian duyệt web hôm nay: ${statsText || 'Chưa có'}
 - 10 mục Clipboard gần nhất: ${clipText || 'Không có'}

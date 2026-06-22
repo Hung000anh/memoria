@@ -166,19 +166,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Logic Cài đặt Dịch thuật ---
   const translateTargetLang = document.getElementById('translateTargetLang');
+  const allowCopyEnabled = document.getElementById('allowCopyEnabled');
   const saveTranslateSettingsBtn = document.getElementById('saveTranslateSettingsBtn');
   const translateSaveMsg = document.getElementById('translateSaveMsg');
 
   function loadTranslateSettings() {
-    chrome.storage.local.get({ translateTargetLang: 'vi' }, (data) => {
+    chrome.storage.local.get({ translateTargetLang: 'vi', allowCopy: false }, (data) => {
       if (translateTargetLang) translateTargetLang.value = data.translateTargetLang;
+      if (allowCopyEnabled) allowCopyEnabled.checked = data.allowCopy;
     });
   }
 
   if (saveTranslateSettingsBtn) {
     saveTranslateSettingsBtn.addEventListener('click', () => {
       const lang = translateTargetLang.value;
-      chrome.storage.local.set({ translateTargetLang: lang }, () => {
+      const copyVal = allowCopyEnabled ? allowCopyEnabled.checked : false;
+      chrome.storage.local.set({ translateTargetLang: lang, allowCopy: copyVal }, () => {
         translateSaveMsg.style.display = 'block';
         setTimeout(() => translateSaveMsg.style.display = 'none', 3000);
       });

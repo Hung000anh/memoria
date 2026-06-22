@@ -1295,3 +1295,227 @@ h2 {
   background-color: rgba(16, 185, 129, 0.2);
   transform: scale(1.05);
 }
+
+/* --- Google Tasks Styles --- */
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+}
+
+.task-item:hover {
+  border-color: var(--primary);
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.task-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.task-checkbox:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.task-checkbox:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.task-text {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-color);
+  word-break: break-word;
+}
+
+.task-delete-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.task-delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+#authStatusArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-color);
+  background: var(--sidebar-bg);
+  padding: 4px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.user-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.btn-logout {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.btn-logout:hover {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* --- Pending Status (Chưa xong) --- */
+/* Sẽ thừa kế toàn bộ CSS mặc định của .task-item (màu chữ của theme, nền var(--card-bg)) */
+.task-item.status-pending {
+  /* Không ghi đè nền và viền */
+}
+.occurrence-item.status-pending {
+  /* Không ghi đè nền */
+}
+
+/* --- Overdue Status (Quá hạn) --- */
+/* Không dùng màu nền đỏ hay chữ đỏ cho toàn hộp, chỉ thừa kế màu mặc định */
+.task-item.status-overdue {
+  /* Không ghi đè nền và viền */
+}
+.occurrence-item.status-overdue {
+  /* Không ghi đè nền */
+}
+
+/* --- Completed Status (Đã xong) --- */
+/* Không màu nền xanh, gạch ngang màu xám */
+.task-item.status-completed {
+  opacity: 0.6;
+}
+.task-item.status-completed .task-title {
+  text-decoration: line-through !important;
+  color: var(--text-muted) !important;
+}
+.task-item.status-completed .task-notes {
+  text-decoration: line-through !important;
+  color: var(--text-muted) !important;
+  opacity: 0.6;
+}
+.task-item.status-completed .task-due {
+  color: var(--text-muted) !important;
+}
+.task-item.status-completed .task-checkbox {
+  background-color: var(--text-muted) !important;
+  border-color: var(--text-muted) !important;
+}
+.occurrence-item.status-completed {
+  color: var(--text-muted) !important;
+}
+.occurrence-item.status-completed .occurrence-time {
+  text-decoration: line-through !important;
+}
+.occurrence-item.status-completed .occurrence-checkbox {
+  background-color: var(--text-muted) !important;
+  border-color: var(--text-muted) !important;
+}
+
+/* Caret rotation for group expansion */
+.caret-icon {
+  transition: transform 0.2s ease;
+}
+
+/* --- Segmented Control --- */
+.segment-control {
+  display: flex;
+  background-color: var(--sidebar-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.segment-btn {
+  flex: 1;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.segment-btn:hover:not(:disabled) {
+  color: var(--text-color);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.segment-btn.active[data-type="event"] {
+  background-color: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.segment-btn.active[data-type="task"] {
+  background-color: #3b82f6; /* Sleek premium color for tasks */
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.segment-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
