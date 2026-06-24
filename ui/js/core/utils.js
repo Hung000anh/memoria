@@ -35,7 +35,9 @@ _global.utils = {
       _global.markedOptionsSet = true;
     }
     if (!text || !_global.marked || !_global.DOMPurify) return text || '';
-    const html = isInline ? _global.marked.parseInline(text) : _global.marked.parse(text);
-    return _global.DOMPurify.sanitize(html);
+    const rawHtml = isInline ? _global.marked.parseInline(text) : _global.marked.parse(text);
+    // Ensure links open in new tab safely
+    const htmlWithTarget = rawHtml.replace(/<a\s+href=("[^"]*"|'[^']*')/g, '<a href=$1 target="_blank" rel="noopener"');
+    return _global.DOMPurify.sanitize(htmlWithTarget);
   }
 };

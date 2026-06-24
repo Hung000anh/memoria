@@ -337,9 +337,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Open external links from note view in a new tab
+  if (viewNoteModal) {
+    viewNoteModal.addEventListener('click', (e) => {
+      if (e.target.tagName === 'A') {
+        e.preventDefault();
+        const url = e.target.getAttribute('href');
+        if (url) chrome.tabs.create({ url });
+      }
+    });
+  }
+
   if (addNoteBtn) addNoteBtn.addEventListener('click', addNote);
 
   window.addEventListener('app_data_changed', loadNotes);
+  
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.notes) {
+      loadNotes();
+    }
+  });
 
   // Initialize
   loadNotes();

@@ -21,4 +21,4 @@ document.addEventListener("copy", () => {
       url: window.location.href || ""
     });
   }
-});
+}, true);

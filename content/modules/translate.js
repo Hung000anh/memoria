@@ -311,8 +311,8 @@ function showTranslatePopup(rect, mouseX, mouseY) {
           notes.unshift({
             id: Date.now(),
             title: 'Bản dịch từ ' + window.location.hostname,
-            text: `**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
-            content: `**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
+            text: `**Nguồn:** [Trang gốc](${window.location.href})\n\n**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
+            content: `**Nguồn:** [Trang gốc](${window.location.href})\n\n**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
             color: '#bbf7d0',
             date: new Date().toISOString()
           });
