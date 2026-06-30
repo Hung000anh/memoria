@@ -91,7 +91,33 @@ document.addEventListener('DOMContentLoaded', () => {
             li.addEventListener('click', (e) => {
               if (window.getSelection().toString().length > 0) return; // Đang bôi đen chữ thì không mở link
               if (e.target.closest('button') || e.target.closest('a')) return; // Bấm vào nút thì bỏ qua
-              window.open(item.url, '_blank');
+              
+              let finalUrl = item.url;
+              try {
+                if (item.text) {
+                  const urlObj = new URL(item.url);
+                  const words = item.text.trim().replace(/\s+/g, ' ').split(' ');
+                  
+                  let fragmentText = '';
+                  if (words.length <= 8) {
+                    fragmentText = encodeURIComponent(words.join(' '));
+                  } else {
+                    const start = encodeURIComponent(words.slice(0, 4).join(' '));
+                    const end = encodeURIComponent(words.slice(-4).join(' '));
+                    fragmentText = `${start},${end}`;
+                  }
+                  
+                  let currentHash = urlObj.hash.replace(/:~:text=[^&]*/g, '');
+                  if (currentHash === '#') currentHash = '';
+                  
+                  const textFragmentStr = (currentHash ? currentHash + ':~:text=' : '#:~:text=') + fragmentText;
+                  finalUrl = urlObj.origin + urlObj.pathname + urlObj.search + textFragmentStr;
+                }
+              } catch (err) {
+                console.error("Lỗi tạo link highlight:", err);
+              }
+              
+              window.open(finalUrl, '_blank');
             });
 
             // Hover effect for the whole block
