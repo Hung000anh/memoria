@@ -76,15 +76,44 @@
         </select>
       </div>
 
-      <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="allowCopyEnabled">
-        <label for="allowCopyEnabled" style="font-weight: 500; font-size: 14px; cursor: pointer;">Bẻ khóa bôi đen & sao chép (Allow Copy)</label>
-      </div>
-
       <div style="display: flex;">
         <button id="saveTranslateSettingsBtn" style="flex: 1;">Lưu Cài đặt Dịch</button>
       </div>
       <p id="translateSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
+    </div>
+
+    <div class="card">
+      <h2>Cài đặt Bẻ khóa Sao chép (Allow Copy)</h2>
+      <p class="help-text" style="margin-bottom:12px;">Cấu hình tự động bẻ khóa hành vi chặn bôi đen, copy và chuột phải của website.</p>
+
+      <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="allowCopyEnabled">
+        <label for="allowCopyEnabled" style="font-weight: 500; font-size: 14px; cursor: pointer;">Bật Bẻ khóa bôi đen & sao chép</label>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label for="allowCopyExclude" style="display: block; font-size: 13px; margin-bottom: 4px;">Danh sách trang web loại trừ (không bẻ khóa bôi đen, mỗi dòng một domain):</label>
+        <textarea id="allowCopyExclude" placeholder="Ví dụ:&#10;docs.google.com&#10;figma.com" style="width: 100%; height: 80px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
+      </div>
+
+      <div style="display: flex;">
+        <button id="saveCopySettingsBtn" style="flex: 1;">Lưu Cài đặt Sao chép</button>
+      </div>
+      <p id="copySaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
+    </div>
+
+    <div class="card">
+      <h2>Cài đặt Menu điều hướng (Sidebar)</h2>
+      <p class="help-text" style="margin-bottom:12px;">Sắp xếp thứ tự hiển thị (Lên/Xuống) hoặc ẩn/hiện các tab trên thanh Sidebar của tiện ích.</p>
+      
+      <ul id="navOrderList" style="list-style: none; padding: 0; margin: 0 0 16px 0; display: flex; flex-direction: column; gap: 8px;">
+        <!-- Danh sách render bằng JS -->
+      </ul>
+
+      <div style="display: flex;">
+        <button id="saveNavSettingsBtn" style="flex: 1;">Lưu Cài đặt Menu</button>
+      </div>
+      <p id="navSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
     </div>
   </div>
   <script src="js/core/theme.js"></script>

@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     keys.forEach((keyObj, index) => {
       const li = document.createElement('li');
       li.className = 'key-item';
-      
+
       const statusClass = keyObj.status === 'DEAD' ? 'status-dead' : 'status-active';
       const statusText = keyObj.status === 'DEAD' ? 'Bị khóa/Lỗi (DEAD)' : 'Hoạt động (ACTIVE)';
 
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Key này đã tồn tại trong danh sách!");
         return;
       }
-      
+
       keys.push({
         key: window.utils.xorHexEncrypt(keyVal, 'memoria_secret_salt_2024'),
         status: 'ACTIVE'
@@ -138,11 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.storage.local.set({ aiSettings: s }, () => {
         // Cập nhật lại chu kỳ báo thức nếu bật
         if (s.enabled) {
-           chrome.alarms.create("proactive_ai", { periodInMinutes: s.period });
+          chrome.alarms.create("proactive_ai", { periodInMinutes: s.period });
         } else {
-           chrome.alarms.clear("proactive_ai");
+          chrome.alarms.clear("proactive_ai");
         }
-        
+
         aiSaveMsg.style.display = 'block';
         setTimeout(() => aiSaveMsg.style.display = 'none', 3000);
       });
@@ -166,27 +166,195 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Logic Cài đặt Dịch thuật ---
   const translateTargetLang = document.getElementById('translateTargetLang');
-  const allowCopyEnabled = document.getElementById('allowCopyEnabled');
   const saveTranslateSettingsBtn = document.getElementById('saveTranslateSettingsBtn');
   const translateSaveMsg = document.getElementById('translateSaveMsg');
 
+  // --- Logic Cài đặt Bẻ khóa Sao chép ---
+  const allowCopyEnabled = document.getElementById('allowCopyEnabled');
+  const allowCopyExclude = document.getElementById('allowCopyExclude');
+  const saveCopySettingsBtn = document.getElementById('saveCopySettingsBtn');
+  const copySaveMsg = document.getElementById('copySaveMsg');
+
   function loadTranslateSettings() {
-    chrome.storage.local.get({ translateTargetLang: 'vi', allowCopy: false }, (data) => {
+    chrome.storage.local.get({ translateTargetLang: 'vi', allowCopy: false, allowCopyExcludeDomains: [] }, (data) => {
       if (translateTargetLang) translateTargetLang.value = data.translateTargetLang;
       if (allowCopyEnabled) allowCopyEnabled.checked = data.allowCopy;
+      if (allowCopyExclude) {
+        allowCopyExclude.value = data.allowCopyExcludeDomains.join('\n');
+      }
     });
   }
 
   if (saveTranslateSettingsBtn) {
     saveTranslateSettingsBtn.addEventListener('click', () => {
       const lang = translateTargetLang.value;
-      const copyVal = allowCopyEnabled ? allowCopyEnabled.checked : false;
-      chrome.storage.local.set({ translateTargetLang: lang, allowCopy: copyVal }, () => {
+      chrome.storage.local.set({ translateTargetLang: lang }, () => {
         translateSaveMsg.style.display = 'block';
         setTimeout(() => translateSaveMsg.style.display = 'none', 3000);
       });
     });
   }
 
+  if (saveCopySettingsBtn) {
+    saveCopySettingsBtn.addEventListener('click', () => {
+      const copyVal = allowCopyEnabled ? allowCopyEnabled.checked : false;
+      const excludeDomains = allowCopyExclude
+        ? allowCopyExclude.value.split('\n')
+          .map(d => {
+            let cleaned = d.trim().toLowerCase();
+            if (!cleaned) return '';
+            // Thêm tiền tố http nếu người dùng nhập dạng url hoặc domain để new URL hoạt động
+            if (!/^https?:\/\//i.test(cleaned)) {
+              cleaned = 'http://' + cleaned;
+            }
+            try {
+              // Trích xuất hostname
+              return new URL(cleaned).hostname;
+            } catch (e) {
+              return d.trim().toLowerCase();
+            }
+          })
+          .filter(Boolean)
+        : [];
+
+      chrome.storage.local.set({
+        allowCopy: copyVal,
+        allowCopyExcludeDomains: excludeDomains
+      }, () => {
+        if (allowCopyExclude) {
+          allowCopyExclude.value = excludeDomains.join('\n');
+        }
+        copySaveMsg.style.display = 'block';
+        setTimeout(() => copySaveMsg.style.display = 'none', 3000);
+      });
+    });
+  }
+
+  // --- Custom Navigator Settings ---
+  const navOrderList = document.getElementById('navOrderList');
+  const saveNavSettingsBtn = document.getElementById('saveNavSettingsBtn');
+  const navSaveMsg = document.getElementById('navSaveMsg');
+
+  const defaultTabs = [
+    { id: "dashboard", name: "Tổng quan" },
+    { id: "chat", name: "AI Chat" },
+    { id: "translate-side-view", name: "Dịch thuật" },
+    { id: "clipboard-view", name: "Clipboard" },
+    { id: "tasks-view", name: "Công việc" },
+    { id: "notes-view", name: "Ghi chú" },
+    { id: "schedule-view", name: "Sự kiện" },
+    { id: "reminders-view", name: "Hẹn giờ" },
+    { id: "weather-view", name: "Thời tiết" },
+    { id: "stats-view", name: "Thống kê" },
+  ];
+
+  let navSettings = [];
+
+  function loadNavSettings() {
+    chrome.storage.local.get({ navigatorSettings: null }, (data) => {
+      if (data.navigatorSettings) {
+        navSettings = data.navigatorSettings;
+        // Bổ sung tab mới nếu thiếu
+        defaultTabs.forEach(defTab => {
+          if (!navSettings.find(t => t.id === defTab.id)) {
+            navSettings.push({ id: defTab.id, name: defTab.name, visible: true });
+          }
+        });
+      } else {
+        navSettings = defaultTabs.map(t => ({ id: t.id, name: t.name, visible: true }));
+      }
+      renderNavSettings();
+    });
+  }
+
+  let draggedIdx = null;
+
+  function renderNavSettings() {
+    if (!navOrderList) return;
+    navOrderList.innerHTML = '';
+
+    navSettings.forEach((item, index) => {
+      const li = document.createElement('li');
+      li.draggable = true;
+      li.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; color: var(--text-color); cursor: grab; transition: background-color 0.2s;';
+
+      li.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; pointer-events: none; width: 100%;">
+          <span style="color: var(--text-muted); font-size: 16px; margin-right: 4px; user-select: none;">☰</span>
+          <input type="checkbox" id="chk-${item.id}" ${item.visible ? 'checked' : ''} style="width: auto; cursor: pointer; pointer-events: auto; margin: 0;">
+          <label for="chk-${item.id}" style="cursor: pointer; font-weight: 500; margin: 0; user-select: none; pointer-events: auto;">${item.name}</label>
+        </div>
+      `;
+      navOrderList.appendChild(li);
+
+      const chk = li.querySelector(`#chk-${item.id}`);
+      chk.addEventListener('change', (e) => {
+        item.visible = e.target.checked;
+      });
+
+      // Drag and Drop Events
+      li.addEventListener('dragstart', (e) => {
+        draggedIdx = index;
+        li.style.opacity = '0.5';
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      li.addEventListener('dragend', () => {
+        draggedIdx = null;
+        li.style.opacity = '1';
+        navOrderList.querySelectorAll('li').forEach(item => {
+          item.style.borderTop = '';
+          item.style.borderBottom = '';
+        });
+      });
+
+      li.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        const rect = li.getBoundingClientRect();
+        const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+
+        navOrderList.querySelectorAll('li').forEach(item => {
+          item.style.borderTop = '';
+          item.style.borderBottom = '';
+        });
+
+        if (next) {
+          li.style.borderBottom = '2px solid var(--primary)';
+        } else {
+          li.style.borderTop = '2px solid var(--primary)';
+        }
+      });
+
+      li.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const rect = li.getBoundingClientRect();
+        const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+
+        let targetIdx = index;
+        if (draggedIdx !== null && draggedIdx !== targetIdx) {
+          const [draggedItem] = navSettings.splice(draggedIdx, 1);
+          if (draggedIdx < targetIdx) {
+            navSettings.splice(next ? targetIdx : targetIdx - 1, 0, draggedItem);
+          } else {
+            navSettings.splice(next ? targetIdx + 1 : targetIdx, 0, draggedItem);
+          }
+          renderNavSettings();
+        }
+      });
+    });
+  }
+
+  if (saveNavSettingsBtn) {
+    saveNavSettingsBtn.addEventListener('click', () => {
+      chrome.storage.local.set({ navigatorSettings: navSettings }, () => {
+        navSaveMsg.style.display = 'block';
+        setTimeout(() => navSaveMsg.style.display = 'none', 3000);
+      });
+    });
+  }
+
   loadTranslateSettings();
+  loadNavSettings();
 });
