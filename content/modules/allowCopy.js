@@ -52,20 +52,34 @@ function disableDauxanhAllowCopy() {
   document.removeEventListener("dragstart", dauxanhAllowCopyEventHandler, true);
 }
 
-// Khởi chạy tính năng
-chrome.storage.local.get({ allowCopy: false }, (data) => {
-  if (data.allowCopy) {
-    enableDauxanhAllowCopy();
-  }
-});
+function evaluateDauxanhAllowCopy() {
+  chrome.storage.local.get({ allowCopy: false, allowCopyExcludeDomains: [] }, (data) => {
+    const currentHost = window.location.hostname;
+    const isExcluded = data.allowCopyExcludeDomains.some(domain => {
+      let cleanDomain = domain.trim().toLowerCase();
+      if (!cleanDomain) return false;
+      // Bỏ protocol nếu có (https://, http://)
+      cleanDomain = cleanDomain.replace(/^https?:\/\//, '');
+      // Bỏ phần path phía sau nếu có (ví dụ: domain/abc/xyz -> domain)
+      cleanDomain = cleanDomain.split('/')[0];
+      
+      return currentHost === cleanDomain || currentHost.endsWith('.' + cleanDomain);
+    });
 
-// Lắng nghe sự thay đổi cấu hình
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.allowCopy) {
-    if (changes.allowCopy.newValue) {
+    if (data.allowCopy && !isExcluded) {
       enableDauxanhAllowCopy();
     } else {
       disableDauxanhAllowCopy();
     }
+  });
+}
+
+// Khởi chạy tính năng
+evaluateDauxanhAllowCopy();
+
+// Lắng nghe sự thay đổi cấu hình
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && (changes.allowCopy || changes.allowCopyExcludeDomains)) {
+    evaluateDauxanhAllowCopy();
   }
 });
