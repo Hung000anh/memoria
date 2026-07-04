@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: "stats-view", name: "Thống kê" },
     { id: "reminders-view", name: "Hẹn giờ" },
     { id: "weather-view", name: "Thời tiết" },
-    { id: "translate-side-view", name: "Dịch thuật" }
+    { id: "translate-side-view", name: "Dịch thuật" },
+    { id: "converter-view", name: "Chuyển đổi" }
   ];
 
   function applyNavigatorSettings(settings) {

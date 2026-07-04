@@ -246,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: "reminders-view", name: "Hẹn giờ" },
     { id: "weather-view", name: "Thời tiết" },
     { id: "stats-view", name: "Thống kê" },
+    { id: "converter-view", name: "Chuyển đổi" },
   ];
 
   let navSettings = [];

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Memoria</title>
   <link rel="stylesheet" href="css/sidepanel.css">
+  <link rel="stylesheet" href="css/converter.css">
 </head>
 
 <body class="preload">
@@ -113,6 +114,16 @@
             <path d="M14 18h6"></path>
           </svg>
           <span class="nav-label">Dịch thuật</span>
+        </button>
+        <button class="nav-item" data-target="converter-view" title="Chuyển đổi File">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <path d="m3 16 4 4 4-4"></path>
+            <path d="M7 20V4"></path>
+            <path d="m21 8-4-4-4 4"></path>
+            <path d="M17 4v16"></path>
+          </svg>
+          <span class="nav-label">Chuyển đổi</span>
         </button>
       </nav>
       <div class="nav-bottom">
@@ -425,6 +436,51 @@
         </div>
       </div>
 
+      <!-- Converter Pane -->
+      <div id="converter-view" class="pane">
+        <h2>Chuyển đổi File</h2>
+        <div class="converter-container">
+          <!-- Dropzone -->
+          <div class="converter-dropzone" id="converterDropzone">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <div class="converter-dropzone-text">Kéo thả file vào đây hoặc click để chọn file</div>
+            <div class="converter-dropzone-subtext">Hỗ trợ .txt, .docx, .pdf, .epub</div>
+          </div>
+          <input type="file" id="converterFileInput" accept=".txt,.docx,.pdf,.epub" style="display: none;" multiple>
+          
+          <!-- File List Area (Hidden by default) -->
+          <div id="converterFileListArea" style="display: none; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; box-sizing: border-box;">
+              <span class="option-label" id="fileListCount" style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Danh sách file (0)</span>
+              <button class="btn-text" id="btnAddNewFile" style="margin: 0; padding: 4px 8px; font-size: 13px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 500;">+ Thêm file</button>
+            </div>
+            <div class="converter-file-list" id="converterFileList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 4px; box-sizing: border-box;">
+              <!-- Sẽ render các file item bằng JS -->
+            </div>
+          </div>
+
+          <!-- Options Area (Hidden by default) -->
+          <div class="converter-options" id="converterOptionsArea" style="display: none;">
+            <div class="option-group">
+              <label class="option-label" for="converterTargetSelect">Định dạng đầu ra</label>
+              <select class="converter-select" id="converterTargetSelect">
+                <!-- Được điền bởi JS tùy thuộc vào định dạng đầu vào -->
+              </select>
+            </div>
+            <div class="converter-actions">
+              <button id="btnConvert" class="btn-primary" style="width: 100%; padding: 12px;">Bắt đầu chuyển đổi</button>
+            </div>
+          </div>
+
+          <!-- Status / Progress / Result (Hidden by default) -->
+          <div id="converterStatusArea" style="display: none;"></div>
+        </div>
+      </div>
+
       <!-- Thống kê (Screen Time) -->
       <div id="stats-view" class="pane">
         <div class="view-header" style="flex-direction: column; align-items: flex-start; gap: 16px;">
@@ -679,6 +735,13 @@
   <script src="js/features/stats.js"></script>
   <script src="js/features/dashboard.js"></script>
   <script src="js/features/translate-sidebar.js"></script>
+  <!-- Thư viện & Module Convert -->
+  <script src="assets/libs/jszip.min.js"></script>
+  <script src="assets/libs/jspdf.umd.min.js"></script>
+  <script src="assets/libs/pdf.min.js"></script>
+  <script src="assets/libs/mammoth.browser.min.js"></script>
+  <script src="assets/libs/docx.iife.js"></script>
+  <script src="js/features/converter.js"></script>
 </body>
 
 </html>
