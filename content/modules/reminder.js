@@ -1,3 +1,14 @@
+// Lắng nghe trạng thái Dark Mode
+let dauxanhReminderIsDarkMode = false;
+chrome.storage.local.get({ isDarkMode: false }, (data) => {
+  dauxanhReminderIsDarkMode = data.isDarkMode;
+});
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.isDarkMode) {
+    dauxanhReminderIsDarkMode = changes.isDarkMode.newValue;
+  }
+});
+
 // Lắng nghe sự kiện từ background để hiển thị Popup nhắc nhở ở góc phải
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "show_overlay") {
@@ -7,6 +18,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       existingOverlay.remove();
     }
 
+    const bg = dauxanhReminderIsDarkMode ? "#1f2937" : "white";
+    const border = dauxanhReminderIsDarkMode ? "1px solid #374151" : "1px solid #e5e7eb";
+    const textColor = dauxanhReminderIsDarkMode ? "#f3f4f6" : "#374151";
+
     const overlay = document.createElement("div");
     overlay.id = overlayId;
     overlay.style.cssText = `
@@ -14,10 +29,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       bottom: 24px !important;
       right: 24px !important;
       width: 320px !important;
-      background-color: white !important;
+      background-color: ${bg} !important;
       border-radius: 12px !important;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
-      border: 1px solid #e5e7eb !important;
+      border: ${border} !important;
       z-index: 2147483647 !important;
       display: flex !important;
       flex-direction: column !important;
@@ -73,7 +88,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       padding: 0 !important;
       font-size: 14px !important;
       margin: 0 0 15px 0 !important;
-      color: #374151 !important;
+      color: ${textColor} !important;
       line-height: 1.5 !important;
       text-align: left !important;
     `;
