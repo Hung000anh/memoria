@@ -98,8 +98,13 @@ QUAN TRỌNG TỐI THƯỢNG:
         history.push({ role: 'ai', text: msg, timestamp: Date.now() });
         chrome.storage.local.set({ chatHistoryData: history }, () => {
            // Báo hiệu badge
-           chrome.action.setBadgeText({ text: '1' });
-           chrome.action.setBadgeBackgroundColor({ color: '#10b981' }); // Màu xanh của app
+           chrome.action.getBadgeText({}, (currentText) => {
+              let count = parseInt(currentText, 10);
+              if (isNaN(count)) count = 0;
+              count++;
+              chrome.action.setBadgeText({ text: String(count) });
+              chrome.action.setBadgeBackgroundColor({ color: '#10b981' }); // Màu xanh của app
+           });
            
            // Nảy notification
            chrome.notifications.create({

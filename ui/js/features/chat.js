@@ -83,8 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     ensureChatTitle();
     
-    // Clear badge khi khởi động
-    chrome.action.setBadgeText({ text: '' });
+    // Clear badge khi khởi động nếu đang ở tab chat
+    const chatPaneInit = document.getElementById('chat');
+    if (chatPaneInit && chatPaneInit.classList.contains('active')) {
+      chrome.action.setBadgeText({ text: '' });
+    }
   });
 
   // Lắng nghe tin nhắn chủ động từ AI
@@ -111,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
           saveChatState();
           
           // Nếu đang xem tab chat thì clear badge
-          const chatView = document.getElementById('chat-view');
+          const chatView = document.getElementById('chat');
           if (chatView && chatView.classList.contains('active')) {
              chrome.action.setBadgeText({ text: '' });
           }
@@ -620,6 +623,7 @@ MỤC TIÊU CỦA BẠN:
     const paneObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.target.classList.contains('active')) {
+          chrome.action.setBadgeText({ text: '' });
           scrollChatToBottom();
           setTimeout(scrollChatToBottom, 50);
           setTimeout(scrollChatToBottom, 200);
