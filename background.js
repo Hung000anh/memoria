@@ -11,6 +11,7 @@ try {
 try {
   importScripts(
     'background/services/translate.js',
+    'background/services/ocr.js',
     'background/services/alarms.js',
     'background/services/timeTracker.js',
     'background/services/proactiveAI.js'
