@@ -176,12 +176,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const copySaveMsg = document.getElementById('copySaveMsg');
 
   function loadTranslateSettings() {
-    chrome.storage.local.get({ translateTargetLang: 'vi', allowCopy: false, allowCopyExcludeDomains: [] }, (data) => {
+    chrome.storage.local.get({ translateTargetLang: 'vi', allowCopy: false, allowCopyExcludeDomains: [], ocrEnabled: true }, (data) => {
       if (translateTargetLang) translateTargetLang.value = data.translateTargetLang;
       if (allowCopyEnabled) allowCopyEnabled.checked = data.allowCopy;
       if (allowCopyExclude) {
         allowCopyExclude.value = data.allowCopyExcludeDomains.join('\n');
       }
+      // OCR settings
+      const ocrEnabledEl = document.getElementById('ocrEnabled');
+      if (ocrEnabledEl) ocrEnabledEl.checked = data.ocrEnabled;
+    });
+  }
+
+  // --- Logic Cài đặt OCR ---
+  const saveOcrSettingsBtn = document.getElementById('saveOcrSettingsBtn');
+  const ocrSaveMsg = document.getElementById('ocrSaveMsg');
+
+  if (saveOcrSettingsBtn) {
+    saveOcrSettingsBtn.addEventListener('click', () => {
+      const ocrEnabledEl = document.getElementById('ocrEnabled');
+      const enabled = ocrEnabledEl ? ocrEnabledEl.checked : true;
+      chrome.storage.local.set({ ocrEnabled: enabled }, () => {
+        if (ocrSaveMsg) {
+          ocrSaveMsg.style.display = 'block';
+          setTimeout(() => ocrSaveMsg.style.display = 'none', 3000);
+        }
+      });
     });
   }
 
