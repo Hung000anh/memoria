@@ -9,6 +9,103 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
+let dauxanhReminderAudioContext = null;
+let dauxanhReminderAudioGestureBound = false;
+let dauxanhReminderAudioPlaybackPending = false;
+
+function dauxanhCreateReminderAudioContext() {
+  if (dauxanhReminderAudioContext) {
+    return dauxanhReminderAudioContext;
+  }
+
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextCtor) {
+    return null;
+  }
+
+  dauxanhReminderAudioContext = new AudioContextCtor();
+  return dauxanhReminderAudioContext;
+}
+
+function dauxanhPlayReminderBeepSequence(ctx) {
+  function playNote(freq, startTime, duration) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration - 0.05);
+    gain.gain.setValueAtTime(0, startTime + duration);
+
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+  }
+
+  const now = ctx.currentTime;
+  playNote(1046.50, now, 0.4);
+  playNote(1318.51, now + 0.15, 0.6);
+}
+
+function dauxanhQueueReminderAudioPlayback() {
+  const ctx = dauxanhCreateReminderAudioContext();
+  if (!ctx) {
+    return;
+  }
+
+  if (ctx.state === 'running') {
+    dauxanhReminderAudioPlaybackPending = false;
+    dauxanhPlayReminderBeepSequence(ctx);
+    return;
+  }
+
+  dauxanhReminderAudioPlaybackPending = true;
+
+  if (!dauxanhReminderAudioGestureBound) {
+    dauxanhReminderAudioGestureBound = true;
+
+    const removeGestureListeners = () => {
+      document.removeEventListener('pointerdown', resumeAndPlay, { capture: true });
+      document.removeEventListener('keydown', resumeAndPlay, { capture: true });
+      document.removeEventListener('click', resumeAndPlay, { capture: true });
+      document.removeEventListener('touchstart', resumeAndPlay, { capture: true });
+    };
+
+    const resumeAndPlay = async () => {
+      removeGestureListeners();
+
+      const audioCtx = dauxanhCreateReminderAudioContext();
+      if (!audioCtx) {
+        return;
+      }
+
+      try {
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+      } catch (e) {
+        console.log('Memoria audio resume blocked', e);
+        return;
+      }
+
+      if (dauxanhReminderAudioPlaybackPending && audioCtx.state === 'running') {
+        dauxanhReminderAudioPlaybackPending = false;
+        dauxanhPlayReminderBeepSequence(audioCtx);
+      }
+    };
+
+    document.addEventListener('pointerdown', resumeAndPlay, { capture: true, once: true });
+    document.addEventListener('keydown', resumeAndPlay, { capture: true, once: true });
+    document.addEventListener('click', resumeAndPlay, { capture: true, once: true });
+    document.addEventListener('touchstart', resumeAndPlay, { capture: true, once: true });
+  }
+}
+
 // Lắng nghe sự kiện từ background để hiển thị Popup nhắc nhở ở góc phải
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "show_overlay") {
@@ -170,36 +267,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       closeOverlay();
     }, 10000);
 
-    // Phát âm thanh thông báo nhẹ nhàng
+    // Phát âm thanh thông báo nhẹ nhàng sau khi có tương tác người dùng
     try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) {
-        const ctx = new AudioContext();
-        
-        function playNote(freq, startTime, duration) {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          
-          osc.type = 'sine'; 
-          osc.frequency.value = freq;
-          
-          gain.gain.setValueAtTime(0, startTime);
-          gain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
-          gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration - 0.05);
-          gain.gain.setValueAtTime(0, startTime + duration);
-          
-          osc.start(startTime);
-          osc.stop(startTime + duration);
-        }
-        
-        const now = ctx.currentTime;
-        playNote(1046.50, now, 0.4);       // C6
-        playNote(1318.51, now + 0.15, 0.6); // E6
-      }
-    } catch(e) {
+      dauxanhQueueReminderAudioPlayback();
+    } catch (e) {
       console.log("Memoria audio play blocked", e);
     }
 
