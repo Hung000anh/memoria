@@ -13,94 +13,183 @@ class AuthService {
     return chrome.identity.getRedirectURL();
   }
 
-  // Khởi tạo và kiểm tra trạng thái đăng nhập
-  async checkSession() {
+  getStoredSessionData() {
     return new Promise((resolve) => {
       chrome.storage.local.get(["supabase_session", "google_access_token", "user_profile"], (data) => {
-        if (data.google_access_token && data.supabase_session) {
-          const sessionData = {
-            loggedIn: true,
-            user: data.user_profile,
-            token: data.google_access_token
-          };
-          this.updateSidebarUI(sessionData);
-          resolve(sessionData);
-        } else {
-          const sessionData = { loggedIn: false };
-          this.updateSidebarUI(sessionData);
-          resolve(sessionData);
-        }
+        resolve(data);
       });
     });
   }
 
-  // Đăng nhập Google (OAuth)
-  async login(interactive = true) {
-    const redirectUrl = this.getRedirectUrl();
-    
-    // Tạo URL đăng nhập Supabase với provider là google và các scopes bổ sung
-    // CẦN THIẾT: Phải đính kèm apikey (Anon Key) trong URL để Supabase Auth API chấp nhận request
-    const authUrl = `${this.supabaseUrl}/auth/v1/authorize?provider=google` +
-                    `&apikey=${encodeURIComponent(this.supabaseKey)}` +
-                    `&redirect_to=${encodeURIComponent(redirectUrl)}` +
-                    `&scopes=${encodeURIComponent(this.scopes)}` +
-                    `&query_params=${encodeURIComponent("access_type=offline&prompt=consent")}`;
+  async clearStoredSession() {
+    await new Promise((resolve) => {
+      chrome.storage.local.remove(["supabase_session", "google_access_token", "user_profile"], () => resolve());
+    });
+  }
 
-    console.log("Memoria Auth - Đang gọi URL:", authUrl);
-    console.log("Memoria Auth - Redirect URL:", redirectUrl);
+  isChromeIdentitySupported() {
+    return Boolean(
+      chrome?.identity &&
+      typeof chrome.identity.getAuthToken === "function" &&
+      typeof chrome.identity.launchWebAuthFlow === "function"
+    );
+  }
+
+  isUnsupportedBrowserError(err) {
+    const message = err?.message || err?.toString() || "";
+    return /not supported|not available|not implemented|coc coc/i.test(message);
+  }
+
+  async getChromeIdentityToken(interactive, scopes) {
+    if (!this.isChromeIdentitySupported()) {
+      throw new Error("Chrome identity API is not supported in this browser.");
+    }
 
     return new Promise((resolve, reject) => {
-      chrome.identity.launchWebAuthFlow({
-        url: authUrl,
-        interactive: interactive
-      }, async (responseUrl) => {
+      chrome.identity.getAuthToken({ interactive, scopes }, (result) => {
         if (chrome.runtime.lastError) {
           return reject(new Error(chrome.runtime.lastError.message));
         }
-        if (!responseUrl) {
-          return reject(new Error("Không nhận được phản hồi từ luồng đăng nhập."));
-        }
-
-        try {
-          const urlObj = new URL(responseUrl);
-          // Parse các token từ hash fragment của redirect url (#access_token=...)
-          const hashParams = new URLSearchParams(urlObj.hash.substring(1));
-          
-          const accessToken = hashParams.get("access_token");
-          const providerToken = hashParams.get("provider_token");
-          const refreshToken = hashParams.get("refresh_token");
-          const expiresIn = hashParams.get("expires_in");
-
-          if (!accessToken || !providerToken) {
-            throw new Error("Đăng nhập thất bại: Không tìm thấy Access Token.");
-          }
-
-          // Lấy thông tin user profile từ token (hoặc từ Supabase user endpoint)
-          const user = await this.getUserProfile(accessToken);
-
-          const session = {
-            access_token: accessToken,
-            refresh_token: refreshToken,
-            expires_at: Date.now() + parseInt(expiresIn) * 1000
-          };
-
-          const sessionData = { loggedIn: true, user, token: providerToken };
-
-          // Lưu thông tin vào storage
-          chrome.storage.local.set({
-            supabase_session: session,
-            google_access_token: providerToken,
-            user_profile: user
-          }, () => {
-            this.updateSidebarUI(sessionData);
-            resolve(sessionData);
-          });
-
-        } catch (err) {
-          reject(err);
-        }
+        resolve(result);
       });
     });
+  }
+
+  async expireSession(reason = "Phiên làm việc Google đã hết hạn. Vui lòng đăng nhập lại.") {
+    await this.clearStoredSession();
+    this.updateSidebarUI({ loggedIn: false });
+    chrome.runtime.sendMessage({ action: "auth_required", reason });
+    return new Error(reason);
+  }
+
+  // Khởi tạo và kiểm tra trạng thái đăng nhập
+  async checkSession() {
+    const data = await this.getStoredSessionData();
+    const session = data.supabase_session;
+    const token = data.google_access_token;
+    const isExpired = Boolean(session?.expires_at && session.expires_at <= Date.now());
+
+    if (token && session && !isExpired) {
+      const sessionData = {
+        loggedIn: true,
+        user: data.user_profile,
+        token
+      };
+      this.updateSidebarUI(sessionData);
+      return sessionData;
+    }
+
+    if (session?.refresh_token && isExpired) {
+      try {
+        const refreshed = await this.refreshSession();
+        if (refreshed?.loggedIn) {
+          this.updateSidebarUI(refreshed);
+          return refreshed;
+        }
+      } catch (e) {
+        console.warn("Refresh session failed during checkSession", e);
+      }
+    }
+
+    if (token || session) {
+      await this.clearStoredSession();
+    }
+
+    const sessionData = { loggedIn: false };
+    this.updateSidebarUI(sessionData);
+    return sessionData;
+  }
+
+  // Đăng nhập Google (OAuth)
+  async login(interactive = true) {
+    const scopes = this.scopes.split(" ").filter(Boolean);
+
+    try {
+      const token = await this.getChromeIdentityToken(interactive, scopes);
+
+      if (!token) {
+        throw new Error("Không nhận được token Google từ Chrome identity.");
+      }
+
+      const sessionData = { loggedIn: true, user: null, token };
+      const session = {
+        access_token: token,
+        refresh_token: null,
+        expires_at: Date.now() + 60 * 60 * 1000
+      };
+
+      await new Promise((resolve) => {
+        chrome.storage.local.set({
+          supabase_session: session,
+          google_access_token: token,
+          user_profile: null
+        }, () => resolve());
+      });
+
+      this.updateSidebarUI(sessionData);
+      return sessionData;
+    } catch (err) {
+      if (this.isUnsupportedBrowserError(err)) {
+        console.info("Browser does not support Chrome identity auth; using Supabase OAuth fallback.", err.message);
+      } else {
+        console.warn("Chrome identity login failed, falling back to Supabase flow", err);
+      }
+
+      const redirectUrl = this.getRedirectUrl();
+      const authUrl = `${this.supabaseUrl}/auth/v1/authorize?provider=google` +
+                      `&apikey=${encodeURIComponent(this.supabaseKey)}` +
+                      `&redirect_to=${encodeURIComponent(redirectUrl)}` +
+                      `&scopes=${encodeURIComponent(this.scopes)}` +
+                      `&query_params=${encodeURIComponent("access_type=offline&prompt=consent")}`;
+
+      return new Promise((resolve, reject) => {
+        chrome.identity.launchWebAuthFlow({
+          url: authUrl,
+          interactive
+        }, async (responseUrl) => {
+          if (chrome.runtime.lastError) {
+            return reject(new Error(chrome.runtime.lastError.message));
+          }
+          if (!responseUrl) {
+            return reject(new Error("Không nhận được phản hồi từ luồng đăng nhập."));
+          }
+
+          try {
+            const urlObj = new URL(responseUrl);
+            const hashParams = new URLSearchParams(urlObj.hash.substring(1));
+            const accessToken = hashParams.get("access_token");
+            const providerToken = hashParams.get("provider_token");
+            const refreshToken = hashParams.get("refresh_token");
+            const expiresIn = hashParams.get("expires_in");
+
+            if (!accessToken || !providerToken) {
+              throw new Error("Đăng nhập thất bại: Không tìm thấy Access Token.");
+            }
+
+            const user = await this.getUserProfile(accessToken);
+            const session = {
+              access_token: accessToken,
+              refresh_token: refreshToken,
+              expires_at: Date.now() + parseInt(expiresIn || "3600", 10) * 1000
+            };
+
+            const sessionData = { loggedIn: true, user, token: providerToken };
+
+            chrome.storage.local.set({
+              supabase_session: session,
+              google_access_token: providerToken,
+              user_profile: user
+            }, () => {
+              this.updateSidebarUI(sessionData);
+              resolve(sessionData);
+            });
+
+          } catch (fallbackErr) {
+            reject(fallbackErr);
+          }
+        });
+      });
+    }
   }
 
   // Lấy thông tin User Profile từ Supabase Auth API
@@ -119,51 +208,121 @@ class AuthService {
 
   // Đăng xuất
   async logout() {
-    return new Promise((resolve) => {
-      chrome.storage.local.remove(["supabase_session", "google_access_token", "user_profile"], () => {
-        const sessionData = { loggedIn: false };
-        this.updateSidebarUI(sessionData);
-        resolve(sessionData);
-      });
-    });
+    await this.clearStoredSession();
+    const sessionData = { loggedIn: false };
+    this.updateSidebarUI(sessionData);
+    return sessionData;
   }
 
-  // Thực hiện một API call với cơ chế tự động làm mới token bằng cách mở lại luồng Auth (silent refresh)
+  async refreshSession() {
+    const data = await this.getStoredSessionData();
+    const session = data.supabase_session;
+
+    try {
+      const token = await this.getGoogleToken(true);
+      if (!token) {
+        throw new Error("Không thể lấy lại token Google.");
+      }
+
+      const newSession = {
+        access_token: token,
+        refresh_token: session?.refresh_token || null,
+        expires_at: Date.now() + 60 * 60 * 1000
+      };
+
+      await new Promise((resolve) => {
+        chrome.storage.local.set({
+          supabase_session: newSession,
+          google_access_token: token,
+          user_profile: data.user_profile
+        }, () => resolve());
+      });
+
+      return {
+        loggedIn: true,
+        user: data.user_profile,
+        token
+      };
+    } catch (err) {
+      console.warn("Refresh session failed", err);
+      return null;
+    }
+  }
+
+  // Thực hiện một API call và xử lý token hết hạn bằng cách làm mới session
   async fetchWithAuth(url, options = {}) {
     let token = await this.getGoogleToken();
+
     if (!token) {
-      throw new Error("Chưa đăng nhập Google.");
+      const refreshed = await this.refreshSession();
+      if (refreshed?.loggedIn) {
+        token = refreshed.token;
+      }
+    }
+
+    if (!token) {
+      throw await this.expireSession("Chưa đăng nhập Google.");
     }
 
     if (!options.headers) options.headers = {};
     options.headers["Authorization"] = `Bearer ${token}`;
 
-    let response = await fetch(url, options);
+    const response = await fetch(url, options);
 
-    // Nếu token hết hạn (401 Unauthorized), thực hiện silent login để lấy token mới
-    if (response.status === 401) {
-      console.log("Google token expired. Attempting silent refresh...");
+    if (response.status === 401 || response.status === 403) {
+      console.warn("Google token expired or unauthorized. Attempting refresh.");
       try {
-        const authResult = await this.login(false); // interactive = false
-        token = authResult.token;
-        options.headers["Authorization"] = `Bearer ${token}`;
-        response = await fetch(url, options);
+        await new Promise((resolve) => {
+          chrome.identity.removeCachedAuthToken({ token }, () => resolve());
+        });
+
+        const refreshedToken = await this.getGoogleToken(true);
+        if (!refreshedToken) {
+          throw new Error("Refresh failed");
+        }
+
+        options.headers["Authorization"] = `Bearer ${refreshedToken}`;
+        const retryResponse = await fetch(url, options);
+        if (retryResponse.status === 401 || retryResponse.status === 403) {
+          throw new Error("Google token remained invalid after refresh.");
+        }
+        return retryResponse;
       } catch (e) {
-        console.error("Silent refresh failed, user needs to login interactively.", e);
-        chrome.runtime.sendMessage({ action: "auth_required" });
-        throw new Error("Phiên làm việc Google đã hết hạn. Vui lòng đăng nhập lại.");
+        console.warn("Refresh retry failed", e);
+        throw await this.expireSession("Phiên làm việc Google đã hết hạn. Vui lòng đăng nhập lại.");
       }
     }
 
     return response;
   }
 
-  async getGoogleToken() {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(["google_access_token"], (data) => {
-        resolve(data.google_access_token || null);
-      });
-    });
+  async getGoogleToken(forceInteractive = false) {
+    const data = await this.getStoredSessionData();
+    const existingToken = data.google_access_token;
+
+    if (existingToken) {
+      return existingToken;
+    }
+
+    const scopes = this.scopes.split(" ").filter(Boolean);
+    try {
+      const token = await this.getChromeIdentityToken(forceInteractive, scopes);
+
+      if (token) {
+        await new Promise((resolve) => {
+          chrome.storage.local.set({ google_access_token: token }, () => resolve());
+        });
+        return token;
+      }
+    } catch (e) {
+      if (this.isUnsupportedBrowserError(e)) {
+        console.info("Browser does not support Chrome identity auth; skipping direct token retrieval.", e.message);
+      } else {
+        console.warn("Could not fetch Google auth token", e);
+      }
+    }
+
+    return null;
   }
 
   // Cập nhật giao diện Sidebar
