@@ -166,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Logic Cài đặt Dịch thuật ---
   const translateTargetLang = document.getElementById('translateTargetLang');
+  const translateSecondaryTargetLang = document.getElementById('translateSecondaryTargetLang');
   const saveTranslateSettingsBtn = document.getElementById('saveTranslateSettingsBtn');
   const translateSaveMsg = document.getElementById('translateSaveMsg');
 
@@ -176,8 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const copySaveMsg = document.getElementById('copySaveMsg');
 
   function loadTranslateSettings() {
-    chrome.storage.local.get({ translateTargetLang: 'vi', allowCopy: false, allowCopyExcludeDomains: [], ocrEnabled: true }, (data) => {
+    chrome.storage.local.get({ translateTargetLang: 'vi', translateSecondaryTargetLang: 'en', allowCopy: false, allowCopyExcludeDomains: [], ocrEnabled: true }, (data) => {
       if (translateTargetLang) translateTargetLang.value = data.translateTargetLang;
+      if (translateSecondaryTargetLang) translateSecondaryTargetLang.value = data.translateSecondaryTargetLang;
       if (allowCopyEnabled) allowCopyEnabled.checked = data.allowCopy;
       if (allowCopyExclude) {
         allowCopyExclude.value = data.allowCopyExcludeDomains.join('\n');
@@ -208,7 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (saveTranslateSettingsBtn) {
     saveTranslateSettingsBtn.addEventListener('click', () => {
       const lang = translateTargetLang.value;
-      chrome.storage.local.set({ translateTargetLang: lang }, () => {
+      const secLang = translateSecondaryTargetLang ? translateSecondaryTargetLang.value : 'en';
+      chrome.storage.local.set({ translateTargetLang: lang, translateSecondaryTargetLang: secLang }, () => {
         translateSaveMsg.style.display = 'block';
         setTimeout(() => translateSaveMsg.style.display = 'none', 3000);
       });
