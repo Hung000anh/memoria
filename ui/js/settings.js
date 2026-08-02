@@ -381,4 +381,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadTranslateSettings();
   loadNavSettings();
+
+  // --- Logic Mở trang Shortcuts của Chrome ---
+  const openShortcutsBtn = document.getElementById('openShortcutsBtn');
+  if (openShortcutsBtn) {
+    openShortcutsBtn.addEventListener('click', () => {
+      chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+    });
+  }
 });

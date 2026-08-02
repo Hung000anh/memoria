@@ -57,6 +57,22 @@
   "action": {
     "default_title": "Mở Side Panel Memoria"
   },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Q",
+        "mac": "Alt+Q"
+      },
+      "description": "Mở bảng điều khiển Memoria"
+    },
+    "open_translate_tab": {
+      "suggested_key": {
+        "default": "Alt+W",
+        "mac": "Alt+W"
+      },
+      "description": "Mở Memoria và nhảy tới Tab Dịch thuật"
+    }
+  },
   "side_panel": {
     "default_path": "ui/sidepanel.html"
   },

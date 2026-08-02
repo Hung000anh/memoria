@@ -22,6 +22,20 @@ try {
 
 console.log("Memoria background script loaded.");
 
+// Lắng nghe lệnh phím tắt kích hoạt
+chrome.commands.onCommand.addListener((command) => {
+  if (command === "open_translate_tab") {
+    // Mở sidepanel
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.sidePanel.open({ windowId: tabs[0].windowId }).catch(err => console.error(err));
+        // Đặt cờ tự động chuyển tab Dịch thuật khi Sidepanel mở
+        chrome.storage.local.set({ autoOpenTab: "translate-side-view" });
+      }
+    });
+  }
+});
+
 // Mở side panel khi click vào icon extension
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })

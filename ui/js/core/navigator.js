@@ -66,14 +66,43 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeBtn) activeBtn.classList.remove('active');
         firstVisibleBtn.classList.add('active');
         const target = firstVisibleBtn.getAttribute('data-target');
-        
+
         const panes = document.querySelectorAll('.pane');
         panes.forEach(p => p.classList.remove('active'));
-        
+
         const activePane = document.getElementById(target);
         if (activePane) activePane.classList.add('active');
       }
     }
+
+    // Kiểm tra cờ autoOpenTab từ background (khi nhấn phím tắt như Alt+W)
+    chrome.storage.local.get(['autoOpenTab'], (res) => {
+      if (res.autoOpenTab) {
+        const targetTab = res.autoOpenTab;
+        chrome.storage.local.remove('autoOpenTab'); // Xóa cờ sau khi dùng
+
+        const targetBtn = navMenu.querySelector(`.nav-item[data-target="${targetTab}"]`);
+        if (targetBtn && targetBtn.style.display !== 'none') {
+          navMenu.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+
+          targetBtn.classList.add('active');
+          const pane = document.getElementById(targetTab);
+          if (pane) pane.classList.add('active');
+
+          // Auto-focus ô nhập dịch thuật
+          if (targetTab === 'translate-side-view') {
+            const tslInput = document.getElementById('tslInput');
+            if (tslInput) {
+              setTimeout(() => {
+                tslInput.focus();
+                tslInput.select();
+              }, 150);
+            }
+          }
+        }
+      }
+    });
   }
 
   // Tải lần đầu
