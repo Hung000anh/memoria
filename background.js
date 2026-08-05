@@ -12,15 +12,49 @@ try {
   importScripts(
     'background/services/translate.js',
     'background/services/ocr.js',
-    'background/services/alarms.js',
-    'background/services/timeTracker.js',
-    'background/services/proactiveAI.js'
+    'background/services/alarms.js'
   );
 } catch (e) {
   console.error("Failed to load background services:", e);
 }
 
 console.log("Memoria background script loaded.");
+
+  // Lắng nghe lệnh phím tắt kích hoạt
+  chrome.commands.onCommand.addListener((command) => {
+    if (command === "trigger_ocr") {
+      // Gửi tin nhắn đến tab hiện tại để kích hoạt OCR
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, { action: "trigger_ocr_shortcut" }).catch(() => {});
+        }
+      });
+      return;
+    }
+
+    if (command === "open_settings_tab") {
+      chrome.runtime.openOptionsPage();
+      return;
+    }
+
+    const tabMap = {
+      "open_chat_tab": "chat",
+      "open_translate_tab": "translate-side-view",
+      "open_notes_tab": "notes-view",
+      "open_timer_tab": "reminders-view",
+      "open_weather_tab": "weather-view"
+    };
+
+    if (tabMap[command]) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          chrome.sidePanel.open({ windowId: tabs[0].windowId }).catch(err => console.error(err));
+          // Đặt cờ tự động chuyển tab khi Sidepanel mở
+          chrome.storage.local.set({ autoOpenTab: tabMap[command] });
+        }
+      });
+    }
+  });
 
 // Mở side panel khi click vào icon extension
 chrome.sidePanel

@@ -1,6 +1,5 @@
 // content/modules/ocr-translate.js
 // Tính năng OCR Dịch thuật: Alt+Shift+S → kéo vùng chọn → gửi background → popup kết quả
-// Tesseract WASM chạy trong Offscreen Document (không còn ở đây nữa)
 
 (function () {
   'use strict';
@@ -13,18 +12,34 @@
   let ocrStartY = 0;
   let isDarkMode = false;
   let ocrEnabled = true;
+  let currentLang = 'vi';
+  let appTranslations = null;
+
+  function t(key) {
+    if (!appTranslations) return '';
+    const fullKey = 'ocr_' + key;
+    return appTranslations[currentLang]?.[fullKey] || appTranslations['vi']?.[fullKey] || '';
+  }
 
   // ─── LOAD SETTINGS ───────────────────────────────────────────────────────
-  chrome.storage.local.get({ isDarkMode: false, ocrEnabled: true }, (data) => {
-    isDarkMode = data.isDarkMode;
-    ocrEnabled = data.ocrEnabled;
-  });
+  try {
+    if (chrome.storage?.local) {
+      chrome.storage.local.get({ isDarkMode: false, ocrEnabled: true, appLanguage: 'vi', appTranslations: {} }, (data) => {
+        isDarkMode = data.isDarkMode;
+        ocrEnabled = data.ocrEnabled;
+        currentLang = data.appLanguage || 'vi';
+        appTranslations = data.appTranslations;
+      });
 
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'local') return;
-    if (changes.isDarkMode) isDarkMode = changes.isDarkMode.newValue;
-    if (changes.ocrEnabled)  ocrEnabled = changes.ocrEnabled.newValue;
-  });
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area !== 'local') return;
+        if (changes.isDarkMode) isDarkMode = changes.isDarkMode.newValue;
+        if (changes.ocrEnabled)  ocrEnabled = changes.ocrEnabled.newValue;
+        if (changes.appLanguage) currentLang = changes.appLanguage.newValue || 'vi';
+        if (changes.appTranslations) appTranslations = changes.appTranslations.newValue;
+      });
+    }
+  } catch (e) {}
 
   // ─── INJECT STYLES ───────────────────────────────────────────────────────
   function injectStyles() {
@@ -85,18 +100,20 @@
     document.head.appendChild(style);
   }
 
-  // ─── HOTKEY ──────────────────────────────────────────────────────────────
+  // ─── HOTKEY & MESSAGES ───────────────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
-    if (e.altKey && e.shiftKey && (e.key === 'S' || e.key === 's') && ocrState === 'IDLE') {
-      if (!ocrEnabled) return;
-      e.preventDefault();
-      e.stopPropagation();
-      injectStyles();
-      startOcrMode();
-      return;
-    }
     if (e.key === 'Escape' && ocrState === 'SELECTING') {
       cancelOcrMode();
+    }
+  });
+
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'trigger_ocr_shortcut') {
+      if (!ocrEnabled) return;
+      if (ocrState === 'IDLE') {
+        injectStyles();
+        startOcrMode();
+      }
     }
   });
 
@@ -106,7 +123,7 @@
 
     ocrOverlay = document.createElement('div');
     ocrOverlay.id = 'dauxanh-ocr-overlay';
-    ocrOverlay.innerHTML = '<div id="dauxanh-ocr-hint">✦ Kéo chuột để chọn vùng cần dịch &nbsp;·&nbsp; ESC để hủy</div>';
+    ocrOverlay.innerHTML = `<div id="dauxanh-ocr-hint">${t('hint')}</div>`;
     document.body.appendChild(ocrOverlay);
 
     ocrSelectionBox = document.createElement('div');
@@ -175,7 +192,7 @@
 
     try {
       // Bước 1 + 2 + 3: Capture + Crop + OCR (xử lý ở background + offscreen)
-      updateStatus(popup, 'Đang nhận dạng chữ...');
+      updateStatus(popup, t('recognizing'));
       const dpr = window.devicePixelRatio || 1;
 
       const ocrRes = await sendMsg({
@@ -185,19 +202,19 @@
       });
 
       if (!ocrRes || !ocrRes.success) {
-        throw new Error(ocrRes?.error || 'OCR thất bại. Xem Console để biết thêm.');
+        throw new Error(ocrRes?.error || t('error_ocr_failed'));
       }
 
       const ocrText = ocrRes.ocrText;
       if (!ocrText || !ocrText.trim()) {
-        throw new Error('Không tìm thấy văn bản trong vùng chọn. Thử chọn vùng khác.');
+        throw new Error(t('error_no_text'));
       }
 
       // Bước 4: Dịch (tái dụng translate service có sẵn)
-      updateStatus(popup, 'Đang dịch...');
+      updateStatus(popup, t('translating'));
       const translateRes = await sendMsg({ action: 'translate_text', text: ocrText });
       if (!translateRes || !translateRes.success) {
-        throw new Error(translateRes?.error || 'Lỗi dịch thuật. Kiểm tra kết nối mạng.');
+        throw new Error(translateRes?.error || t('error_translate'));
       }
 
       popup.remove();
@@ -209,7 +226,7 @@
                : typeof err === 'string' ? err
                : String(err);
       console.error('[OCR-Translate] Lỗi:', err);
-      showErrorPopup(rect, msg || 'Lỗi không xác định.');
+      showErrorPopup(rect, msg || t('error_unknown'));
     }
   }
 
@@ -217,6 +234,10 @@
   function sendMsg(msg) {
     return new Promise((resolve) => {
       try {
+        if (!chrome.runtime?.id) {
+          resolve(null);
+          return;
+        }
         chrome.runtime.sendMessage(msg, (res) => {
           if (chrome.runtime.lastError) { resolve(null); }
           else { resolve(res); }
@@ -283,13 +304,17 @@
     const safe = (s) => s
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+    let iconUrl = "";
+    try {
+      if (chrome.runtime?.id) iconUrl = chrome.runtime.getURL('icons/icon48.png');
+    } catch (e) {}
+
     popup.innerHTML = `
       <div id="dauxanh-ocr-header"
            style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;cursor:grab;">
         <span style="font-weight:600;color:#10b981;font-size:13px;display:flex;align-items:center;gap:5px;">
-          <img src="${chrome.runtime.getURL('icons/icon48.png')}"
-               style="width:14px;height:14px;border-radius:50%;object-fit:contain;display:block;">
-          OCR Dịch thuật
+          ${iconUrl ? `<img src="${iconUrl}" style="width:14px;height:14px;border-radius:50%;object-fit:contain;display:block;">` : ''}
+          ${t('title')}
         </span>
         <button id="dauxanh-ocr-close-btn"
                 style="background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#9ca3af;padding:2px 4px;">
@@ -311,7 +336,7 @@
             <polyline points="17 21 17 13 7 13 7 21"/>
             <polyline points="7 3 7 8 15 8"/>
           </svg>
-          Lưu Ghi chú
+          ${t('save')}
         </button>
       </div>
     `;
@@ -323,19 +348,19 @@
     saveBtn.addEventListener('mouseover', () => saveBtn.style.background = '#059669');
     saveBtn.addEventListener('mouseout',  () => saveBtn.style.background = '#10b981');
     saveBtn.addEventListener('click', () => {
-      saveBtn.textContent = 'Đang lưu...';
+      saveBtn.textContent = t('saving');
       saveBtn.disabled = true;
-      const noteText = `**Nguồn:** [${window.location.hostname}](${window.location.href})\n\n**Bản gốc (OCR):**\n${ocrText}\n\n**Bản dịch:**\n${translatedText}`;
+      const noteText = `**${t('source')}:** [${window.location.hostname}](${window.location.href})\n\n**${t('original')}:**\n${ocrText}\n\n**${t('translation')}:**\n${translatedText}`;
       chrome.storage.local.get({ notes: [] }, (data) => {
         data.notes.unshift({
           id: Date.now(),
-          title: 'OCR từ ' + window.location.hostname,
+          title: t('ocr_from') + ' ' + window.location.hostname,
           text: noteText, content: noteText,
           color: '#bbf7d0',
           date: new Date().toISOString()
         });
         chrome.storage.local.set({ notes: data.notes }, () => {
-          saveBtn.innerHTML = '✓ Đã lưu!';
+          saveBtn.innerHTML = t('saved');
           saveBtn.style.background = '#059669';
           setTimeout(() => popup.remove(), 1500);
         });
@@ -358,7 +383,7 @@
     popup.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
         <div>
-          <div style="font-weight:600;color:#ef4444;font-size:13px;margin-bottom:5px;">⚠ Lỗi OCR</div>
+          <div style="font-weight:600;color:#ef4444;font-size:13px;margin-bottom:5px;">${t('error')}</div>
           <div style="font-size:13px;color:${c.muted};line-height:1.5;">${message}</div>
         </div>
         <button onclick="this.closest('#dauxanh-ocr-popup').remove()"

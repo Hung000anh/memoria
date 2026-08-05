@@ -207,36 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       },
       {
-        name: "create_schedule",
-        description: "Tạo một sự kiện lịch mới (sự kiện cá nhân/họp/học tập).",
-        parameters: {
-          type: "OBJECT",
-          properties: {
-            title: { type: "STRING", description: "Tên sự kiện" },
-            content: { type: "STRING", description: "Mô tả sự kiện" },
-            date: { type: "STRING", description: "Ngày (YYYY-MM-DD)" },
-            time: { type: "STRING", description: "Giờ (HH:MM)" },
-            recurrence: { type: "STRING", description: "Lặp lại: none, daily, weekly, monthly, yearly" }
-          },
-          required: ["title", "date", "recurrence"]
-        }
-      },
-      {
-        name: "create_task",
-        description: "Tạo một công việc/nhiệm vụ mới cần hoàn thành (Task list).",
-        parameters: {
-          type: "OBJECT",
-          properties: {
-            title: { type: "STRING", description: "Tên công việc" },
-            content: { type: "STRING", description: "Mô tả chi tiết công việc" },
-            date: { type: "STRING", description: "Ngày hạn hoàn thành (YYYY-MM-DD)" },
-            time: { type: "STRING", description: "Giờ hạn hoàn thành (HH:MM), tùy chọn" },
-            recurrence: { type: "STRING", description: "Lặp lại: none, daily, weekly, monthly, yearly" }
-          },
-          required: ["title", "date", "recurrence"]
-        }
-      },
-      {
         name: "create_reminder",
         description: "Đặt hẹn giờ/nhắc nhở đếm ngược.",
         parameters: {
@@ -309,119 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
               resolve({ error: "Không tìm thấy ghi chú với ID cung cấp." });
             }
-          } else if (call.name === "create_schedule") {
-            const title = call.args.title || 'Sự kiện';
-            const date = call.args.date;
-            const time = call.args.time || '';
-            const recurrence = call.args.recurrence || 'none';
-            const content = call.args.content || '';
-
-            if (!date) {
-              resolve({ error: "Thiếu ngày cho sự kiện." });
-              return;
-            }
-
-            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const eventBody = {
-              summary: title,
-              description: content,
-              start: time ? { dateTime: `${date}T${time}:00`, timeZone } : { date: date },
-              end: time ? { dateTime: getEndTimeHelper(date, time), timeZone } : { date: getNextDayHelper(date) }
-            };
-
-            if (recurrence !== 'none') {
-              eventBody.recurrence = [`RRULE:FREQ=${recurrence.toUpperCase()}`];
-            }
-
-            try {
-              const res = await window.authService.fetchWithAuth("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(eventBody)
-              });
-              if (!res.ok) throw new Error("Google Calendar API trả về lỗi: " + res.status);
-              
-              // Trigger reload in UI
-              window.dispatchEvent(new Event('app_data_changed'));
-              if (window.loadSchedules) window.loadSchedules();
-              resolve({ result: "Success" });
-            } catch (err) {
-              resolve({ error: err.message });
-            }
-
-          } else if (call.name === "create_task") {
-            const title = call.args.title || 'Công việc';
-            const date = call.args.date;
-            const time = call.args.time || '';
-            const recurrence = call.args.recurrence || 'none';
-            const content = call.args.content || '';
-
-            if (!date) {
-              resolve({ error: "Thiếu ngày cho công việc." });
-              return;
-            }
-
-            let calendarId = window.tasksManager ? window.tasksManager.calendarId : null;
-            if (!calendarId) {
-              try {
-                const listUrl = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
-                const res = await window.authService.fetchWithAuth(listUrl);
-                if (res.ok) {
-                  const data = await res.json();
-                  const calendars = data.items || [];
-                  let taskCal = calendars.find(cal => cal.summary === "Công việc");
-                  if (taskCal) {
-                    calendarId = taskCal.id;
-                  }
-                }
-              } catch (e) {
-                console.error(e);
-              }
-            }
-
-            if (!calendarId) {
-              resolve({ error: "Không tìm thấy lịch phụ 'Công việc'. Vui lòng đăng nhập Google và mở tab Công việc trước." });
-              return;
-            }
-
-            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const eventBody = {
-              summary: title,
-              description: content,
-              start: time ? { dateTime: `${date}T${time}:00`, timeZone } : { date: date },
-              end: time ? { dateTime: getEndTimeHelper(date, time), timeZone } : { date: getNextDayHelper(date) },
-              colorId: "5",
-              extendedProperties: {
-                private: {
-                  status: "needsAction",
-                  recurrence: recurrence
-                }
-              }
-            };
-
-            if (recurrence !== 'none') {
-              eventBody.recurrence = [`RRULE:FREQ=${recurrence.toUpperCase()}`];
-            }
-
-            try {
-              const res = await window.authService.fetchWithAuth(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(eventBody)
-              });
-              if (!res.ok) throw new Error("Google Calendar API (tasks) trả về lỗi: " + res.status);
-
-              // Trigger reload in UI
-              window.dispatchEvent(new Event('app_data_changed'));
-              window.dispatchEvent(new CustomEvent("task_changed"));
-              if (window.tasksManager && typeof window.tasksManager.loadTasks === "function") {
-                window.tasksManager.loadTasks();
-              }
-              resolve({ result: "Success" });
-            } catch (err) {
-              resolve({ error: err.message });
-            }
-
           } else if (call.name === "create_reminder") {
             const rem = {
               id: Date.now(),
@@ -470,7 +327,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Typing indicator
     const typingDiv = document.createElement('div');
     typingDiv.className = 'msg ai-msg';
-    typingDiv.textContent = 'Đang suy nghĩ...';
+    const thinkingText = window.i18n ? window.i18n.t('chat_thinking') : 'Đang suy nghĩ...';
+    typingDiv.textContent = thinkingText;
     chatHistory.appendChild(typingDiv);
     scrollChatToBottom();
     saveChatState();
@@ -524,7 +382,7 @@ DỮ LIỆU HIỆN TẠI CỦA NGƯỜI DÙNG:
 MỤC TIÊU CỦA BẠN:
 - Hãy gọi tool nếu người dùng yêu cầu thao tác (thêm, sửa, xóa) dữ liệu hoặc tra cứu thời tiết thành phố khác.
 - Nếu người dùng hỏi về thông tin đã có, hãy trả lời dựa trên dữ liệu hiện tại ở trên.
-- Trả lời ngắn gọn, thân thiện bằng tiếng Việt.
+- Trả lời ngắn gọn, thân thiện bằng ngôn ngữ: ${window.i18n ? window.i18n.t('lang_' + window.i18n.currentLang) : 'Tiếng Việt'}.
       `;
 
       try {
@@ -545,7 +403,8 @@ MỤC TIÊU CỦA BẠN:
           
           const fnTypingDiv = document.createElement('div');
           fnTypingDiv.className = 'msg ai-msg';
-          fnTypingDiv.innerHTML = `<span style="color:#10b981;">Đang thực thi: ${aiResponse.functionCall.name}...</span>`;
+          const execText = window.i18n ? window.i18n.t('chat_executing') : 'Đang thực thi:';
+          fnTypingDiv.innerHTML = `<span style="color:#10b981;">${execText} ${aiResponse.functionCall.name}...</span>`;
           chatHistory.appendChild(fnTypingDiv);
           chatHistory.scrollTop = chatHistory.scrollHeight;
 
@@ -572,7 +431,8 @@ MỤC TIÊU CỦA BẠN:
           if (aiResponse2.text) {
              addMessageToUI(aiResponse2.text, false, aiResponse2.rawContent.timestamp);
           } else {
-             addMessageToUI("Đã thực hiện xong yêu cầu của bạn!", false, aiResponse2.rawContent.timestamp);
+             const doneText = window.i18n ? window.i18n.t('chat_processing_done') : "Đã thực hiện xong yêu cầu của bạn!";
+             addMessageToUI(doneText, false, aiResponse2.rawContent.timestamp);
           }
         } else if (aiResponse.text) {
           chatHistory.removeChild(typingDiv);
@@ -582,7 +442,8 @@ MỤC TIÊU CỦA BẠN:
         }
       } catch (error) {
         if (chatHistory.contains(typingDiv)) chatHistory.removeChild(typingDiv);
-        addMessageToUI(`❌ Lỗi: ${error.message}`, false);
+        const errorText = window.i18n ? window.i18n.t('chat_error') : 'Lỗi';
+        addMessageToUI(`❌ ${errorText}: ${error.message}`, false);
         // Xóa tin nhắn lỗi khỏi lịch sử để không kẹt
         chatHistoryData.pop(); 
         saveChatState();

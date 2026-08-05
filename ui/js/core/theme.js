@@ -23,6 +23,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
   });
 
+  // Lắng nghe thay đổi theme realtime từ storage (khi chuyển theme ở sidepanel hay bất kỳ đâu)
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.isDarkMode) {
+      applyTheme(changes.isDarkMode.newValue);
+    }
+  });
+
   if (toggleThemeBtn) {
     toggleThemeBtn.addEventListener('click', () => {
       const isDark = document.body.hasAttribute('data-theme');
@@ -45,7 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Add active to target
       btn.classList.add('active');
       const target = btn.getAttribute('data-target');
-      document.getElementById(target).classList.add('active');
+      const targetPane = document.getElementById(target);
+      if (targetPane) targetPane.classList.add('active');
 
       // Scroll to bottom if chat
       if (target === 'chat') {
@@ -64,15 +72,4 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.runtime.openOptionsPage();
     });
   }
-  
-  // --- Thống kê ---
-  const screenTimeValue = document.getElementById('screenTimeValue');
-
-  function loadStats() {
-    chrome.storage.local.get({ totalScreenTime: 0 }, (data) => {
-      if (screenTimeValue) screenTimeValue.textContent = data.totalScreenTime + ' phút';
-    });
-  }
-  
-  loadStats();
 });
