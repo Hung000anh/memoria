@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const addKeyBtn = document.getElementById('addKeyBtn');
   const keyList = document.getElementById('keyList');
 
+  const t = (key) => window.i18n ? window.i18n.t(key) : key;
+
   // Load danh sách key từ storage
   function loadKeys() {
     chrome.storage.local.get({ geminiKeys: [] }, (data) => {
@@ -27,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderKeys(keys) {
     keyList.innerHTML = '';
     if (keys.length === 0) {
-      keyList.innerHTML = '<li class="key-item"><span style="color:#6b7280; font-size:14px;">Chưa có key nào. Vui lòng thêm ít nhất 1 key.</span></li>';
+      keyList.innerHTML = `<li class="key-item"><span style="color:#6b7280; font-size:14px;">${t('stg_keys_no_key')}</span></li>`;
       return;
     }
 
@@ -36,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       li.className = 'key-item';
 
       const statusClass = keyObj.status === 'DEAD' ? 'status-dead' : 'status-active';
-      const statusText = keyObj.status === 'DEAD' ? 'Bị khóa/Lỗi (DEAD)' : 'Hoạt động (ACTIVE)';
+      const statusText = keyObj.status === 'DEAD' ? t('stg_keys_status_dead') : t('stg_keys_status_active');
 
       // Mask key cho bảo mật
       let rawKey = keyObj.key;
@@ -50,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="key-string">${maskedKey}</span>
           <span class="key-status ${statusClass}">${statusText}</span>
         </div>
-        <button class="btn-delete" data-index="${index}">Xóa</button>
+        <button class="btn-delete" data-index="${index}">${t('btn_delete')}</button>
       `;
       keyList.appendChild(li);
     });
@@ -77,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!raw.startsWith('AIza')) raw = window.utils.xorHexDecrypt(raw, 'memoria_secret_salt_2024') || raw;
         return raw === keyVal;
       })) {
-        alert("Key này đã tồn tại trong danh sách!");
+        alert(t('stg_keys_exists'));
         return;
       }
 
@@ -95,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Xóa key
   function deleteKey(index) {
-    if (!confirm("Bạn có chắc muốn xóa Key này không?")) return;
+    if (!confirm(t('stg_keys_confirm_delete'))) return;
     chrome.storage.local.get({ geminiKeys: [] }, (data) => {
       let keys = data.geminiKeys;
       keys.splice(index, 1);
@@ -107,62 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Khởi chạy
   loadKeys();
-
-  // --- Logic Cài đặt AI Chủ động ---
-  const aiEnabled = document.getElementById('aiEnabled');
-  const aiPeriod = document.getElementById('aiPeriod');
-  const aiSleepStart = document.getElementById('aiSleepStart');
-  const aiSleepEnd = document.getElementById('aiSleepEnd');
-  const saveAiSettingsBtn = document.getElementById('saveAiSettingsBtn');
-  const testAiBtn = document.getElementById('testAiBtn');
-  const aiSaveMsg = document.getElementById('aiSaveMsg');
-
-  function loadAiSettings() {
-    chrome.storage.local.get({ aiSettings: { enabled: true, period: 60, sleepStart: 23, sleepEnd: 6 } }, (data) => {
-      const s = data.aiSettings;
-      if (aiEnabled) aiEnabled.checked = s.enabled;
-      if (aiPeriod) aiPeriod.value = s.period;
-      if (aiSleepStart) aiSleepStart.value = s.sleepStart;
-      if (aiSleepEnd) aiSleepEnd.value = s.sleepEnd;
-    });
-  }
-
-  if (saveAiSettingsBtn) {
-    saveAiSettingsBtn.addEventListener('click', () => {
-      const s = {
-        enabled: aiEnabled.checked,
-        period: parseInt(aiPeriod.value) || 60,
-        sleepStart: parseInt(aiSleepStart.value) || 0,
-        sleepEnd: parseInt(aiSleepEnd.value) || 0
-      };
-      chrome.storage.local.set({ aiSettings: s }, () => {
-        // Cập nhật lại chu kỳ báo thức nếu bật
-        if (s.enabled) {
-          chrome.alarms.create("proactive_ai", { periodInMinutes: s.period });
-        } else {
-          chrome.alarms.clear("proactive_ai");
-        }
-
-        aiSaveMsg.style.display = 'block';
-        setTimeout(() => aiSaveMsg.style.display = 'none', 3000);
-      });
-    });
-  }
-
-  if (testAiBtn) {
-    testAiBtn.addEventListener('click', () => {
-      testAiBtn.innerText = "Đang chạy...";
-      testAiBtn.disabled = true;
-      chrome.runtime.sendMessage({ action: "force_proactive_ai" }, (res) => {
-        setTimeout(() => {
-          testAiBtn.innerText = "Test thử ngay";
-          testAiBtn.disabled = false;
-        }, 1500);
-      });
-    });
-  }
-
-  loadAiSettings();
 
   // --- Logic Cài đặt Dịch thuật ---
   const translateTargetLang = document.getElementById('translateTargetLang');
@@ -177,33 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const copySaveMsg = document.getElementById('copySaveMsg');
 
   function loadTranslateSettings() {
-    chrome.storage.local.get({ translateTargetLang: 'vi', translateSecondaryTargetLang: 'en', allowCopy: false, allowCopyExcludeDomains: [], ocrEnabled: true }, (data) => {
+    chrome.storage.local.get({ translateTargetLang: 'vi', translateSecondaryTargetLang: 'en', allowCopy: false, allowCopyExcludeDomains: [] }, (data) => {
       if (translateTargetLang) translateTargetLang.value = data.translateTargetLang;
       if (translateSecondaryTargetLang) translateSecondaryTargetLang.value = data.translateSecondaryTargetLang;
       if (allowCopyEnabled) allowCopyEnabled.checked = data.allowCopy;
       if (allowCopyExclude) {
         allowCopyExclude.value = data.allowCopyExcludeDomains.join('\n');
       }
-      // OCR settings
-      const ocrEnabledEl = document.getElementById('ocrEnabled');
-      if (ocrEnabledEl) ocrEnabledEl.checked = data.ocrEnabled;
-    });
-  }
-
-  // --- Logic Cài đặt OCR ---
-  const saveOcrSettingsBtn = document.getElementById('saveOcrSettingsBtn');
-  const ocrSaveMsg = document.getElementById('ocrSaveMsg');
-
-  if (saveOcrSettingsBtn) {
-    saveOcrSettingsBtn.addEventListener('click', () => {
-      const ocrEnabledEl = document.getElementById('ocrEnabled');
-      const enabled = ocrEnabledEl ? ocrEnabledEl.checked : true;
-      chrome.storage.local.set({ ocrEnabled: enabled }, () => {
-        if (ocrSaveMsg) {
-          ocrSaveMsg.style.display = 'block';
-          setTimeout(() => ocrSaveMsg.style.display = 'none', 3000);
-        }
-      });
     });
   }
 
@@ -226,12 +152,10 @@ document.addEventListener('DOMContentLoaded', () => {
           .map(d => {
             let cleaned = d.trim().toLowerCase();
             if (!cleaned) return '';
-            // Thêm tiền tố http nếu người dùng nhập dạng url hoặc domain để new URL hoạt động
             if (!/^https?:\/\//i.test(cleaned)) {
               cleaned = 'http://' + cleaned;
             }
             try {
-              // Trích xuất hostname
               return new URL(cleaned).hostname;
             } catch (e) {
               return d.trim().toLowerCase();
@@ -258,29 +182,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveNavSettingsBtn = document.getElementById('saveNavSettingsBtn');
   const navSaveMsg = document.getElementById('navSaveMsg');
 
-  const defaultTabs = [
-    { id: "dashboard", name: "Tổng quan" },
-    { id: "chat", name: "AI Chat" },
-    { id: "translate-side-view", name: "Dịch thuật" },
-    { id: "clipboard-view", name: "Clipboard" },
-    { id: "tasks-view", name: "Công việc" },
-    { id: "notes-view", name: "Ghi chú" },
-    { id: "schedule-view", name: "Sự kiện" },
-    { id: "reminders-view", name: "Hẹn giờ" },
-    { id: "weather-view", name: "Thời tiết" },
-    { id: "stats-view", name: "Thống kê" },
-    { id: "converter-view", name: "Chuyển đổi" },
-  ];
+  function getDefaultTabs() {
+    return [
+      { id: "chat", name: t('nav_chat') },
+      { id: "translate-side-view", name: t('nav_translate') },
+      { id: "clipboard-view", name: t('nav_clipboard') },
+      { id: "notes-view", name: t('nav_notes') },
+      { id: "reminders-view", name: t('nav_reminders') },
+      { id: "weather-view", name: t('nav_weather') }
+    ];
+  }
 
   let navSettings = [];
 
   function loadNavSettings() {
+    const defaultTabs = getDefaultTabs();
     chrome.storage.local.get({ navigatorSettings: null }, (data) => {
       if (data.navigatorSettings) {
-        navSettings = data.navigatorSettings;
-        // Bổ sung tab mới nếu thiếu
+        navSettings = data.navigatorSettings.filter(t => defaultTabs.some(def => def.id === t.id));
         defaultTabs.forEach(defTab => {
-          if (!navSettings.find(t => t.id === defTab.id)) {
+          const existing = navSettings.find(t => t.id === defTab.id);
+          if (existing) {
+            existing.name = defTab.name;
+          } else {
             navSettings.push({ id: defTab.id, name: defTab.name, visible: true });
           }
         });
@@ -381,6 +305,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadTranslateSettings();
   loadNavSettings();
+
+  // Lắng nghe thay đổi ngôn ngữ hoặc thay đổi cấu hình dịch thuật để re-render dynamic strings & select values
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local') {
+      if (changes.appLanguage) {
+        loadKeys();
+        loadNavSettings();
+      }
+      if (changes.translateTargetLang || changes.translateSecondaryTargetLang) {
+        loadTranslateSettings();
+      }
+    }
+  });
 
   // --- Logic Mở trang Shortcuts của Chrome ---
   const openShortcutsBtn = document.getElementById('openShortcutsBtn');

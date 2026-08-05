@@ -11,17 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const humidityEl = document.getElementById('weatherHumidity');
   const windEl = document.getElementById('weatherWind');
   const forecastDiv = document.getElementById('weatherForecast');
-
-  const WMO_CODES = {
-    0: 'Trời quang đãng',
-    1: 'Trời quang', 2: 'Ít mây', 3: 'Nhiều mây',
-    45: 'Có sương mù', 48: 'Sương mù dày đặc',
-    51: 'Mưa phùn nhẹ', 53: 'Mưa phùn vừa', 55: 'Mưa phùn đặc',
-    61: 'Mưa nhỏ', 63: 'Mưa vừa', 65: 'Mưa to',
-    71: 'Tuyết rơi nhẹ', 73: 'Tuyết rơi vừa', 75: 'Tuyết rơi dày',
-    95: 'Có sấm sét', 96: 'Sấm sét và mưa đá', 99: 'Bão lớn'
-  };
-
+  
   const ICONS_SVG = {
     sun: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>',
     cloudSun: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M20 12h2"/><path d="M22 12A6 6 0 0 0 12 6a5.94 5.94 0 0 0-4.5 2.1"/><path d="M18 15a3 3 0 0 0-3-3 4 4 0 0 0-7.88-1A5 5 0 0 0 7 21h10a4 4 0 0 0 1-7z"/></svg>',
@@ -46,9 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const current = data.current_weather;
       const humidity = data.hourly.relativehumidity_2m[0] || '--';
       
+      const codes = window.i18n ? window.i18n.t('weather_codes') : {};
+      const unknownText = window.i18n ? window.i18n.t('weather_unknown') : 'Unknown';
+      
       cityNameEl.textContent = cityName;
       tempEl.textContent = Math.round(current.temperature);
-      descEl.textContent = WMO_CODES[current.weathercode] || 'Không xác định';
+      descEl.textContent = codes[current.weathercode] || unknownText;
       windEl.textContent = current.windspeed;
       humidityEl.textContent = humidity;
       
@@ -62,11 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // Render Forecast (Next days)
       if (forecastDiv && data.daily) {
         forecastDiv.innerHTML = '';
-        const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+        const daysArray = window.i18n ? window.i18n.t('weather_days') : ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+        const tomorrowText = window.i18n ? window.i18n.t('weather_tomorrow') : 'Ngày mai';
+
         for (let i = 1; i < data.daily.time.length; i++) {
           if (data.daily.time[i]) {
             const date = new Date(data.daily.time[i]);
-            const dayName = i === 1 ? 'Ngày mai' : days[date.getDay()];
+            const dayName = i === 1 ? tomorrowText : daysArray[date.getDay()];
             const minT = Math.round(data.daily.temperature_2m_min[i]);
             const maxT = Math.round(data.daily.temperature_2m_max[i]);
             const icon = WMO_ICONS[data.daily.weathercode[i]] || ICONS_SVG.cloud;

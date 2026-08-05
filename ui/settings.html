@@ -3,174 +3,179 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cài đặt Memoria</title>
+  <title data-i18n="stg_title">Cài đặt Memoria</title>
   <link rel="stylesheet" href="css/settings.css">
 </head>
 <body>
   <div class="container">
-    <h1>Cài đặt Memoria</h1>
-    <p class="subtitle">Quản lý Gemini API Keys để Chatbot hoạt động.</p>
-    
-    <div class="card">
-      <h2>⚡ Phím tắt nhanh</h2>
-      <p class="help-text" style="margin-bottom:12px;">Mở nhanh bảng điều khiển Memoria từ bất kỳ đâu bằng phím tắt.</p>
+    <h1 data-i18n="stg_title">Cài đặt Memoria</h1>
+    <p class="subtitle" data-i18n="stg_subtitle">Quản lý Gemini API Keys và Cấu hình tiện ích.</p>
 
-      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+    <div class="card">
+      <h2 data-i18n="stg_shortcuts_title">⚡ Phím tắt nhanh</h2>
+      <p class="help-text" style="margin-bottom:12px;" data-i18n="stg_shortcuts_help">Mở nhanh bảng điều khiển Memoria từ bất kỳ đâu bằng phím tắt.</p>
+
+      <!-- NHÓM 1: MẶC ĐỊNH -->
+      <h3 style="font-size: 14px; color: var(--text-color); margin: 16px 0 8px 0;" data-i18n="stg_shortcuts_group_default">Phím tắt mặc định (Hoạt động ngay)</h3>
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
         <div>
-          <div style="font-weight: 500; font-size: 14px;">Mở Memoria Sidepanel</div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Phím tắt mặc định hệ thống</div>
+          <div style="font-weight: 500; font-size: 14px;" data-i18n="stg_shortcuts_open_sidepanel">Mở Memoria Sidepanel</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;" data-i18n="stg_shortcuts_sidepanel_desc">Phím tắt mặc định hệ thống</div>
         </div>
         <kbd style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 13px; font-family: monospace;">Alt + Q</kbd>
       </div>
 
-      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
         <div>
-          <div style="font-weight: 500; font-size: 14px;">Mở & Focus Tab Dịch thuật</div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Mở bảng điều khiển, nhảy tới Dịch và con trỏ chuột nhảy thẳng vào ô nhập</div>
+          <div style="font-weight: 500; font-size: 14px;" data-i18n="stg_shortcuts_open_chat">Mở Tab AI Chat</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;" data-i18n="stg_shortcuts_chat_desc">Mở bảng điều khiển và tự động chuyển sang Chat</div>
+        </div>
+        <kbd style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 13px; font-family: monospace;">Alt + A</kbd>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+        <div>
+          <div style="font-weight: 500; font-size: 14px;" data-i18n="stg_shortcuts_open_translate">Mở Tab Dịch thuật</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;" data-i18n="stg_shortcuts_translate_desc">Mở bảng điều khiển, nhảy tới Dịch và nhảy vào ô nhập</div>
         </div>
         <kbd style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 13px; font-family: monospace;">Alt + W</kbd>
       </div>
 
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 16px;">
+        <div>
+          <div style="font-weight: 500; font-size: 14px;" data-i18n="stg_shortcuts_ocr">Quét ảnh Dịch thuật (OCR)</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;" data-i18n="stg_shortcuts_ocr_desc">Nhấn Alt + S rồi kéo chuột chọn vùng hình ảnh trên màn hình</div>
+        </div>
+        <kbd style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 13px; font-family: monospace;">Alt + S</kbd>
+      </div>
+
+      <!-- NHÓM 2: GỢI Ý -->
+      <h3 style="font-size: 14px; color: var(--text-color); margin: 0 0 8px 0;" data-i18n="stg_shortcuts_group_suggest">Phím tắt mở rộng (Cần thiết lập thủ công)</h3>
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+        <div>
+          <div style="font-weight: 500; font-size: 14px;" data-i18n="stg_shortcuts_open_notes">Mở Tab Ghi chú</div>
+        </div>
+        <kbd style="background: transparent; color: var(--text-muted); padding: 4px 8px; font-size: 12px; font-style: italic; border: none;" data-i18n="stg_shortcuts_suggest_e">Gợi ý: Alt + E</kbd>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+        <div>
+          <div style="font-weight: 500; font-size: 14px;" data-i18n="stg_shortcuts_open_timer">Mở Tab Hẹn giờ</div>
+        </div>
+        <kbd style="background: transparent; color: var(--text-muted); padding: 4px 8px; font-size: 12px; font-style: italic; border: none;" data-i18n="stg_shortcuts_suggest_r">Gợi ý: Alt + R</kbd>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px;">
+        <div>
+          <div style="font-weight: 500; font-size: 14px;" data-i18n="stg_shortcuts_open_weather">Mở Tab Thời tiết</div>
+        </div>
+        <kbd style="background: transparent; color: var(--text-muted); padding: 4px 8px; font-size: 12px; font-style: italic; border: none;" data-i18n="stg_shortcuts_suggest_d">Gợi ý: Alt + D</kbd>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+        <div>
+          <div style="font-weight: 500; font-size: 14px;" data-i18n="stg_shortcuts_open_settings">Mở Cài đặt</div>
+        </div>
+        <kbd style="background: transparent; color: var(--text-muted); padding: 4px 8px; font-size: 12px; font-style: italic; border: none;" data-i18n="stg_shortcuts_suggest_v">Gợi ý: Alt + V</kbd>
+      </div>
+
+      <div style="margin-bottom: 16px; padding: 12px; background-color: rgba(16, 185, 129, 0.1); border-left: 3px solid var(--primary); border-radius: 4px; font-size: 13px; color: var(--text-color);">
+        <strong style="color: var(--primary);" data-i18n="stg_shortcuts_tip_prefix">💡 Mẹo:</strong> <span data-i18n="stg_shortcuts_manual_tip">Trình duyệt chỉ cho phép tiện ích tự gán 4 phím tắt mặc định ở trên. Bạn có thể tự gán các phím gợi ý bằng cách nhấn vào nút bên dưới, tìm đúng tên lệnh và gán phím!</span>
+      </div>
+
       <div style="display: flex;">
-        <button id="openShortcutsBtn" style="flex: 1; background-color: var(--secondary); color: white;">Thay đổi phím tắt trong Chrome</button>
+        <button id="openShortcutsBtn" style="flex: 1; background-color: var(--secondary); color: white;" data-i18n="stg_shortcuts_change_btn">Thay đổi phím tắt trong Chrome</button>
       </div>
     </div>
 
     <div class="card">
-      <h2>Thêm API Key mới</h2>
+      <h2 data-i18n="stg_keys_add_title">Thêm API Key mới</h2>
       <div class="input-group">
-        <input type="text" id="newKeyInput" placeholder="Nhập Gemini API Key (AIzaSy...)" autocomplete="off">
-        <button id="addKeyBtn">Thêm Key</button>
+        <input type="text" id="newKeyInput" placeholder="Nhập Gemini API Key (AIzaSy...)" data-i18n-placeholder="stg_keys_placeholder" autocomplete="off">
+        <button id="addKeyBtn" data-i18n="stg_keys_add_btn">Thêm Key</button>
       </div>
-      <p class="help-text">Nhập nhiều key để hệ thống tự động xoay vòng nếu có key bị lỗi hoặc hết hạn ngạch.</p>
+      <p class="help-text" data-i18n="stg_keys_help">Nhập nhiều key để hệ thống tự động xoay vòng nếu có key bị lỗi hoặc hết hạn ngạch.</p>
     </div>
 
     <div class="card">
-      <h2>Danh sách Key đã lưu</h2>
+      <h2 data-i18n="stg_keys_list_title">Danh sách Key đã lưu</h2>
       <ul id="keyList" class="key-list">
         <!-- Danh sách render bằng JS -->
       </ul>
     </div>
 
     <div class="card">
-      <h2>Cài đặt AI Chủ động</h2>
-      <p class="help-text" style="margin-bottom:12px;">Cấu hình để AI tự động phân tích ngữ cảnh (lịch trình, thời tiết) và gửi lời nhắc cho bạn.</p>
-      
-      <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="aiEnabled" checked>
-        <label for="aiEnabled" style="font-weight: 500; font-size: 14px; cursor: pointer;">Bật AI chủ động</label>
-      </div>
+      <h2 data-i18n="stg_tsl_title">Cài đặt Dịch thuật</h2>
+      <p class="help-text" style="margin-bottom:12px;" data-i18n="stg_tsl_help">Chọn ngôn ngữ đích mà bạn muốn dịch sang khi bôi đen văn bản hoặc quét ảnh OCR.</p>
 
-      <div style="margin-bottom: 12px;">
-        <label for="aiPeriod" style="display: block; font-size: 13px; margin-bottom: 4px;">Chu kỳ hoạt động (phút):</label>
-        <input type="number" id="aiPeriod" min="10" max="1440" value="60" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
-      </div>
-
-      <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-        <div style="flex: 1;">
-          <label for="aiSleepStart" style="display: block; font-size: 13px; margin-bottom: 4px;">Ngủ đông từ (Giờ):</label>
-          <input type="number" id="aiSleepStart" min="0" max="23" value="23" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
-        </div>
-        <div style="flex: 1;">
-          <label for="aiSleepEnd" style="display: block; font-size: 13px; margin-bottom: 4px;">Đến (Giờ):</label>
-          <input type="number" id="aiSleepEnd" min="0" max="23" value="6" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 12px; margin-top: 16px;">
-        <button id="saveAiSettingsBtn" style="flex: 2;">Lưu Cài đặt AI</button>
-        <button id="testAiBtn" style="flex: 1; background-color: var(--secondary); color: white;">Test thử ngay</button>
-      </div>
-      <p id="aiSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
-    </div>
-
-    <div class="card">
-      <h2>Cài đặt Dịch thuật</h2>
-      <p class="help-text" style="margin-bottom:12px;">Chọn ngôn ngữ đích mà bạn muốn dịch sang khi bôi đen văn bản.</p>
-      
       <div style="margin-bottom: 16px;">
-        <label for="translateTargetLang" style="display: block; font-size: 13px; margin-bottom: 4px;">Ngôn ngữ đích:</label>
+        <label for="translateTargetLang" style="display: block; font-size: 13px; margin-bottom: 4px;" data-i18n="stg_tsl_target_label">Ngôn ngữ đích:</label>
         <select id="translateTargetLang" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
-          <option value="vi">Tiếng Việt</option>
-          <option value="en">Tiếng Anh</option>
-          <option value="zh-CN">Tiếng Trung (Giản thể)</option>
-          <option value="ja">Tiếng Nhật</option>
-          <option value="ko">Tiếng Hàn</option>
-          <option value="fr">Tiếng Pháp</option>
-          <option value="de">Tiếng Đức</option>
+          <option value="vi" data-i18n="lang_vi">Tiếng Việt</option>
+          <option value="en" data-i18n="lang_en">Tiếng Anh</option>
+          <option value="zh-CN" data-i18n="lang_zh">Tiếng Trung (Giản thể)</option>
+          <option value="ja" data-i18n="lang_ja">Tiếng Nhật</option>
+          <option value="ko" data-i18n="lang_ko">Tiếng Hàn</option>
+          <option value="fr" data-i18n="lang_fr">Tiếng Pháp</option>
+          <option value="de" data-i18n="lang_de">Tiếng Đức</option>
         </select>
       </div>
 
       <div style="margin-bottom: 16px;">
-        <label for="translateSecondaryTargetLang" style="display: block; font-size: 13px; margin-bottom: 4px;">Ngôn ngữ đích phụ (nếu gốc trùng đích):</label>
+        <label for="translateSecondaryTargetLang" style="display: block; font-size: 13px; margin-bottom: 4px;" data-i18n="stg_tsl_sec_target_label">Ngôn ngữ đích phụ (nếu gốc trùng đích):</label>
         <select id="translateSecondaryTargetLang" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
-          <option value="en">Tiếng Anh</option>
-          <option value="vi">Tiếng Việt</option>
-          <option value="zh-CN">Tiếng Trung (Giản thể)</option>
-          <option value="ja">Tiếng Nhật</option>
-          <option value="ko">Tiếng Hàn</option>
-          <option value="fr">Tiếng Pháp</option>
-          <option value="de">Tiếng Đức</option>
+          <option value="en" data-i18n="lang_en">Tiếng Anh</option>
+          <option value="vi" data-i18n="lang_vi">Tiếng Việt</option>
+          <option value="zh-CN" data-i18n="lang_zh">Tiếng Trung (Giản thể)</option>
+          <option value="ja" data-i18n="lang_ja">Tiếng Nhật</option>
+          <option value="ko" data-i18n="lang_ko">Tiếng Hàn</option>
+          <option value="fr" data-i18n="lang_fr">Tiếng Pháp</option>
+          <option value="de" data-i18n="lang_de">Tiếng Đức</option>
         </select>
       </div>
 
-
       <div style="display: flex;">
-        <button id="saveTranslateSettingsBtn" style="flex: 1;">Lưu Cài đặt Dịch</button>
+        <button id="saveTranslateSettingsBtn" style="flex: 1;" data-i18n="stg_tsl_save_btn">Lưu Cài đặt Dịch</button>
       </div>
-      <p id="translateSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
+      <p id="translateSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;" data-i18n="stg_save_success">Đã lưu thành công!</p>
     </div>
 
     <div class="card">
-      <h2>🔍 Cài đặt OCR Dịch thuật</h2>
-      <p class="help-text" style="margin-bottom:12px;">Nhấn <kbd style="background:var(--border-color);padding:2px 6px;border-radius:4px;font-size:12px;font-family:monospace;">Alt + Shift + S</kbd> rồi kéo chuột chọn vùng hình ảnh để nhận dạng chữ và dịch tự động.</p>
-
-      <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="ocrEnabled" checked>
-        <label for="ocrEnabled" style="font-weight: 500; font-size: 14px; cursor: pointer;">Bật OCR Dịch thuật</label>
-      </div>
-
-      <div style="display: flex;">
-        <button id="saveOcrSettingsBtn" style="flex: 1;">Lưu Cài đặt OCR</button>
-      </div>
-      <p id="ocrSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
-    </div>
-
-    <div class="card">
-      <h2>Cài đặt Bẻ khóa Sao chép (Allow Copy)</h2>
-      <p class="help-text" style="margin-bottom:12px;">Cấu hình tự động bẻ khóa hành vi chặn bôi đen, copy và chuột phải của website.</p>
+      <h2 data-i18n="stg_copy_title">Cài đặt Bẻ khóa Sao chép (Allow Copy)</h2>
+      <p class="help-text" style="margin-bottom:12px;" data-i18n="stg_copy_help">Cấu hình tự động bẻ khóa hành vi chặn bôi đen, copy và chuột phải của website.</p>
 
       <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="allowCopyEnabled">
-        <label for="allowCopyEnabled" style="font-weight: 500; font-size: 14px; cursor: pointer;">Bật Bẻ khóa bôi đen & sao chép</label>
+        <label for="allowCopyEnabled" style="font-weight: 500; font-size: 14px; cursor: pointer;" data-i18n="stg_copy_enable_label">Bật Bẻ khóa bôi đen & sao chép</label>
       </div>
 
       <div style="margin-bottom: 16px;">
-        <label for="allowCopyExclude" style="display: block; font-size: 13px; margin-bottom: 4px;">Danh sách trang web loại trừ (không bẻ khóa bôi đen, mỗi dòng một domain):</label>
-        <textarea id="allowCopyExclude" placeholder="Ví dụ:&#10;docs.google.com&#10;figma.com" style="width: 100%; height: 80px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
+        <label for="allowCopyExclude" style="display: block; font-size: 13px; margin-bottom: 4px;" data-i18n="stg_copy_exclude_label">Danh sách trang web loại trừ (không bẻ khóa bôi đen, mỗi dòng một domain):</label>
+        <textarea id="allowCopyExclude" placeholder="Ví dụ:&#10;docs.google.com&#10;figma.com" data-i18n-placeholder="stg_copy_exclude_placeholder" style="width: 100%; height: 80px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
       </div>
 
       <div style="display: flex;">
-        <button id="saveCopySettingsBtn" style="flex: 1;">Lưu Cài đặt Sao chép</button>
+        <button id="saveCopySettingsBtn" style="flex: 1;" data-i18n="stg_copy_save_btn">Lưu Cài đặt Sao chép</button>
       </div>
-      <p id="copySaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
+      <p id="copySaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;" data-i18n="stg_save_success">Đã lưu thành công!</p>
     </div>
 
     <div class="card">
-      <h2>Cài đặt Menu điều hướng (Sidebar)</h2>
-      <p class="help-text" style="margin-bottom:12px;">Sắp xếp thứ tự hiển thị (Lên/Xuống) hoặc ẩn/hiện các tab trên thanh Sidebar của tiện ích.</p>
-      
+      <h2 data-i18n="stg_nav_title">Cài đặt Menu điều hướng (Sidebar)</h2>
+      <p class="help-text" style="margin-bottom:12px;" data-i18n="stg_nav_help">Sắp xếp thứ tự hiển thị (Lên/Xuống) hoặc ẩn/hiện các tab trên thanh Sidebar của tiện ích.</p>
+
       <ul id="navOrderList" style="list-style: none; padding: 0; margin: 0 0 16px 0; display: flex; flex-direction: column; gap: 8px;">
         <!-- Danh sách render bằng JS -->
       </ul>
 
       <div style="display: flex;">
-        <button id="saveNavSettingsBtn" style="flex: 1;">Lưu Cài đặt Menu</button>
+        <button id="saveNavSettingsBtn" style="flex: 1;" data-i18n="stg_nav_save_btn">Lưu Cài đặt Menu</button>
       </div>
-      <p id="navSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;">Đã lưu thành công!</p>
+      <p id="navSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;" data-i18n="stg_save_success">Đã lưu thành công!</p>
     </div>
   </div>
   <script src="js/core/theme.js"></script>
+  <script src="js/core/i18n.js"></script>
   <script src="js/core/utils.js"></script>
   <script src="js/settings.js"></script>
 </body>

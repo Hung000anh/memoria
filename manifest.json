@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Memoria",
   "version": "1.0",
-  "description": "Memoria - Trợ lý ảo toàn diện với AI, Quản lý Lịch trình, Ghi chú và Clipboard thông minh",
+  "description": "Memoria - Trợ lý ảo cá nhân với AI Chat, Ghi chú, Clipboard, Hẹn giờ, Dịch thuật, OCR và Thời tiết",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -16,20 +16,8 @@
     "offscreen",
     "sidePanel",
     "scripting",
-    "notifications",
-    "idle",
-    "identity"
+    "notifications"
   ],
-  "oauth2": {
-    "client_id": "149376920922-0po7h9o6j9t8v7fgkusmlqr16mvne9s0.apps.googleusercontent.com",
-    "scopes": [
-      "https://www.googleapis.com/auth/calendar",
-      "https://www.googleapis.com/auth/tasks",
-      "openid",
-      "email",
-      "profile"
-    ]
-  },
   "host_permissions": [
     "<all_urls>"
   ],
@@ -63,14 +51,40 @@
         "default": "Alt+Q",
         "mac": "Alt+Q"
       },
-      "description": "Mở bảng điều khiển Memoria"
+      "description": "Mở bảng điều khiển Memoria (Chat)"
+    },
+    "open_chat_tab": {
+      "suggested_key": {
+        "default": "Alt+A",
+        "mac": "Alt+A"
+      },
+      "description": "Mở tab AI Chat"
     },
     "open_translate_tab": {
       "suggested_key": {
         "default": "Alt+W",
         "mac": "Alt+W"
       },
-      "description": "Mở Memoria và nhảy tới Tab Dịch thuật"
+      "description": "Mở tab Dịch thuật"
+    },
+    "open_notes_tab": {
+      "description": "Mở tab Ghi chú"
+    },
+    "trigger_ocr": {
+      "suggested_key": {
+        "default": "Alt+S",
+        "mac": "Alt+S"
+      },
+      "description": "Kích hoạt quét OCR và Dịch"
+    },
+    "open_timer_tab": {
+      "description": "Mở tab Hẹn giờ"
+    },
+    "open_weather_tab": {
+      "description": "Mở tab Thời tiết"
+    },
+    "open_settings_tab": {
+      "description": "Mở tab Cài đặt"
     }
   },
   "side_panel": {

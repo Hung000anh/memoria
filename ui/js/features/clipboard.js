@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentVal = clipboardSourceSelect.value;
     const sources = [...new Set(history.map(item => item.source))].filter(Boolean);
 
-    clipboardSourceSelect.innerHTML = '<option value="">Tất cả nguồn</option>';
+    const allSourcesText = window.i18n ? window.i18n.t('clip_all_sources') : 'Tất cả nguồn';
+    clipboardSourceSelect.innerHTML = `<option value="" data-i18n="clip_all_sources">${allSourcesText}</option>`;
     sources.forEach(src => {
       const opt = document.createElement('option');
       opt.value = src;

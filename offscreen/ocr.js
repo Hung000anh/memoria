@@ -4,16 +4,24 @@
 'use strict';
 
 let tesseractWorker = null;
+let currentWorkerLang = null;
 
-// Khởi tạo Tesseract worker (lazy, chỉ một lần)
-async function getWorker() {
-  if (tesseractWorker) return tesseractWorker;
+// Khởi tạo Tesseract worker (lazy, tái sử dụng nếu cùng ngôn ngữ)
+async function getWorker(lang = 'eng') {
+  if (tesseractWorker && currentWorkerLang === lang) return tesseractWorker;
+
+  if (tesseractWorker) {
+    try {
+      await tesseractWorker.terminate();
+    } catch (e) {}
+    tesseractWorker = null;
+  }
 
   const base = chrome.runtime.getURL('lib/tesseract');
-  console.log('[OCR-Offscreen] Khởi tạo Tesseract worker (v5), base:', base);
+  console.log(`[OCR-Offscreen] Khởi tạo Tesseract worker (v5) cho lang [${lang}], base:`, base);
 
   // Tesseract v5: createWorker(langs, oem, options)
-  tesseractWorker = await Tesseract.createWorker('eng', 1, {
+  tesseractWorker = await Tesseract.createWorker(lang, 1, {
     workerPath: base + '/worker.min.js',
     langPath: base,
     corePath: base + '/tesseract-core.wasm.js',
@@ -27,7 +35,8 @@ async function getWorker() {
     }
   });
 
-  console.log('[OCR-Offscreen] Worker sẵn sàng!');
+  currentWorkerLang = lang;
+  console.log(`[OCR-Offscreen] Worker [${lang}] sẵn sàng!`);
   return tesseractWorker;
 }
 
@@ -41,7 +50,7 @@ function cropImage(dataUrl, rect, dpr) {
       canvas.width  = Math.round(rect.width  * dpr * scale);
       canvas.height = Math.round(rect.height * dpr * scale);
       const ctx = canvas.getContext('2d');
-      
+
       // Bật khử răng cưa chất lượng cao để ảnh phóng to không bị vỡ hạt
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
@@ -66,14 +75,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   (async () => {
     try {
-      console.log('[OCR-Offscreen] Nhận yêu cầu OCR, rect:', request.rect, 'dpr:', request.dpr);
+      const ocrLang = request.lang || 'eng';
+      console.log('[OCR-Offscreen] Nhận yêu cầu OCR, lang:', ocrLang, 'rect:', request.rect, 'dpr:', request.dpr);
 
       // Crop ảnh
       const croppedUrl = await cropImage(request.dataUrl, request.rect, request.dpr || 1);
       console.log('[OCR-Offscreen] Crop xong, bắt đầu OCR...');
 
       // Nhận dạng chữ
-      const worker = await getWorker();
+      const worker = await getWorker(ocrLang);
       const { data: { text } } = await worker.recognize(croppedUrl);
       const ocrText = text
         .replace(/[\r\n]+/g, ' ')
@@ -86,6 +96,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } catch (e) {
       // Nếu worker hỏng, reset để lần sau thử lại
       tesseractWorker = null;
+      currentWorkerLang = null;
       const msg = e instanceof Error ? e.message : String(e);
       console.error('[OCR-Offscreen] Lỗi:', msg, e);
       sendResponse({ success: false, error: msg });

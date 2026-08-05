@@ -5,12 +5,16 @@ let translatePopup = null;
 let dauxanhIsDarkMode = false;
 let dauxanhResizeObserver = null;
 
-chrome.storage.local.get({ isDarkMode: false }, data => dauxanhIsDarkMode = data.isDarkMode);
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.isDarkMode) {
-    dauxanhIsDarkMode = changes.isDarkMode.newValue;
+try {
+  if (chrome.storage?.local) {
+    chrome.storage.local.get({ isDarkMode: false }, data => dauxanhIsDarkMode = data.isDarkMode);
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'local' && changes.isDarkMode) {
+        dauxanhIsDarkMode = changes.isDarkMode.newValue;
+      }
+    });
   }
-});
+} catch (e) {}
 
 function removeTranslateUI() {
   if (dauxanhResizeObserver) {
@@ -40,11 +44,11 @@ document.addEventListener("mouseup", (e) => {
 
   const selection = window.getSelection();
   const text = selection.toString().trim();
-  
+
   if (text.length > 0) {
     dauxanhSelectedText = text;
     if (translateIconContainer) removeTranslateUI();
-    
+
     translateIconContainer = document.createElement("div");
     translateIconContainer.id = "dauxanh-translate-icon-btn";
     translateIconContainer.style.cssText = `
@@ -62,9 +66,10 @@ document.addEventListener("mouseup", (e) => {
       animation: dauxanhPop 0.2s ease-out;
       border: 1px solid #e5e7eb;
     `;
-    
+
     const iconImg = document.createElement("img");
     try {
+      if (!chrome.runtime?.id) return;
       iconImg.src = chrome.runtime.getURL("icons/icon48.png");
     } catch (e) {
       console.warn("Memoria: Vui lòng tải lại trang (F5) để sử dụng tính năng sau khi cập nhật Extension.");
@@ -72,19 +77,19 @@ document.addEventListener("mouseup", (e) => {
     }
     iconImg.style.cssText = "width: 18px; height: 18px; border-radius: 50%; object-fit: contain; margin: 0; padding: 0; display: block;";
     translateIconContainer.appendChild(iconImg);
-    
+
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
-    
+
     translateIconContainer.style.top = (e.pageY + 12) + 'px';
     translateIconContainer.style.left = (e.pageX + 8) + 'px';
-    
+
     translateIconContainer.onclick = async (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
       showTranslatePopup(rect, e.pageX, e.pageY);
     };
-    
+
     document.body.appendChild(translateIconContainer);
   } else {
     removeTranslateUI();
@@ -158,18 +163,23 @@ function showTranslatePopup(rect, mouseX, mouseY) {
     `;
     document.head.appendChild(st);
   }
-  
+
   const header = document.createElement("div");
   header.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: grab; flex-shrink: 0;";
-  
+
+  let iconUrl = "";
+  try {
+    if (chrome.runtime?.id) iconUrl = chrome.runtime.getURL('icons/icon48.png');
+  } catch (e) {}
+
   const title = document.createElement("div");
-  title.innerHTML = `<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px; line-height:1;"><img src="${chrome.runtime.getURL('icons/icon48.png')}" style="width:16px;height:16px;border-radius:50%; display:block; margin:0; padding:0; object-fit:contain;"> Dịch thuật</span>`;
-  
+  title.innerHTML = `<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px; line-height:1;">${iconUrl ? `<img src="${iconUrl}" style="width:16px;height:16px;border-radius:50%; display:block; margin:0; padding:0; object-fit:contain;">` : ''} Dịch thuật</span>`;
+
   const closeBtn = document.createElement("button");
   closeBtn.innerHTML = "&times;";
   closeBtn.style.cssText = "background: none; border: none; font-size: 20px; cursor: pointer; color: #9ca3af; line-height: 1;";
   closeBtn.onclick = removeTranslateUI;
-  
+
   header.appendChild(title);
   header.appendChild(closeBtn);
   translatePopup.appendChild(header);
@@ -198,23 +208,23 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   });
 
   const originalTxtColor = dauxanhIsDarkMode ? "#9ca3af" : "#6b7280";
-  
+
   const contentArea = document.createElement("div");
   contentArea.id = "dauxanh-translate-content";
   contentArea.style.cssText = "font-size: 14px; flex: 1; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; line-height: 1.5; margin-bottom: 12px; min-height: 0;";
   contentArea.innerHTML = `<div style="color: ${originalTxtColor}; font-style: italic; text-align: center; display: flex; align-items: center; justify-content: center; height: 100%;">Đang dịch...</div>`;
   translatePopup.appendChild(contentArea);
-  
+
   const dividerColor = dauxanhIsDarkMode ? "#374151" : "#f3f4f6";
   const footer = document.createElement("div");
   footer.style.cssText = `display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid ${dividerColor}; padding-top: 12px; flex-shrink: 0;`;
-  
+
   const saveBtn = document.createElement("button");
   saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Lưu Ghi chú';
   saveBtn.style.cssText = "background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: none; align-items: center;";
   saveBtn.onmouseover = () => saveBtn.style.background = "#059669";
   saveBtn.onmouseout = () => saveBtn.style.background = "#10b981";
-  
+
   footer.appendChild(saveBtn);
   translatePopup.appendChild(footer);
 
@@ -268,11 +278,11 @@ function showTranslatePopup(rect, mouseX, mouseY) {
 
   let topPos = mouseY + 25;
   if (topPos + 250 > window.scrollY + window.innerHeight) {
-    topPos = mouseY - 260; 
+    topPos = mouseY - 260;
   }
   translatePopup.style.top = topPos + 'px';
   translatePopup.style.left = Math.max(10, mouseX - 160) + 'px';
-  
+
   document.body.appendChild(translatePopup);
 
   dauxanhResizeObserver = new ResizeObserver(entries => {
@@ -286,47 +296,53 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   });
   dauxanhResizeObserver.observe(translatePopup);
 
-  chrome.runtime.sendMessage({ action: "translate_text", text: dauxanhSelectedText }, (response) => {
-    if (response && response.success) {
-      const translatedTxtColor = dauxanhIsDarkMode ? "#f9fafb" : "#111827";
-      const borderDashed = dauxanhIsDarkMode ? "#4b5563" : "#e5e7eb";
-      translatePopup.style.setProperty('--dauxanh-border-dashed', borderDashed);
-      contentArea.innerHTML = `
-        <div class="dauxanh-translation-grid">
-          <div class="dauxanh-original">
-            <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${originalTxtColor};">Bản gốc</div>
-            <div style="color: ${originalTxtColor}; white-space: pre-wrap;">${dauxanhSelectedText}</div>
-          </div>
-          <div class="dauxanh-translated">
-            <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${translatedTxtColor};">Bản dịch</div>
-            <div style="color: ${translatedTxtColor}; white-space: pre-wrap;">${response.translatedText}</div>
-          </div>
-        </div>
-      `;
-      saveBtn.style.display = "inline-flex";
-      saveBtn.onclick = () => {
-        saveBtn.innerText = "Đang lưu...";
-        chrome.storage.local.get({ notes: [] }, (data) => {
-          const notes = data.notes;
-          notes.unshift({
-            id: Date.now(),
-            title: 'Bản dịch từ ' + window.location.hostname,
-            text: `**Nguồn:** [Trang gốc](${window.location.href})\n\n**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
-            content: `**Nguồn:** [Trang gốc](${window.location.href})\n\n**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
-            color: '#bbf7d0',
-            date: new Date().toISOString()
-          });
-          chrome.storage.local.set({ notes }, () => {
-            saveBtn.innerHTML = "Đã lưu!";
-            saveBtn.style.background = "#059669";
-            setTimeout(() => {
-              removeTranslateUI();
-            }, 1500);
-          });
-        });
-      };
-    } else {
-      contentArea.innerHTML = `<div style="color: #ef4444;">Lỗi dịch thuật: ${response ? response.error : 'Không phản hồi'}</div>`;
+  try {
+    if (chrome.runtime?.id) {
+      chrome.runtime.sendMessage({ action: "translate_text", text: dauxanhSelectedText }, (response) => {
+        if (response && response.success) {
+          const translatedTxtColor = dauxanhIsDarkMode ? "#f9fafb" : "#111827";
+          const borderDashed = dauxanhIsDarkMode ? "#4b5563" : "#e5e7eb";
+          translatePopup.style.setProperty('--dauxanh-border-dashed', borderDashed);
+          contentArea.innerHTML = `
+            <div class="dauxanh-translation-grid">
+              <div class="dauxanh-original">
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${originalTxtColor};">Bản gốc</div>
+                <div style="color: ${originalTxtColor}; white-space: pre-wrap;">${dauxanhSelectedText}</div>
+              </div>
+              <div class="dauxanh-translated">
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${translatedTxtColor};">Bản dịch</div>
+                <div style="color: ${translatedTxtColor}; white-space: pre-wrap;">${response.translatedText}</div>
+              </div>
+            </div>
+          `;
+          saveBtn.style.display = "inline-flex";
+          saveBtn.onclick = () => {
+            saveBtn.innerText = "Đang lưu...";
+            chrome.storage.local.get({ notes: [] }, (data) => {
+              const notes = data.notes;
+              notes.unshift({
+                id: Date.now(),
+                title: 'Bản dịch từ ' + window.location.hostname,
+                text: `**Nguồn:** [Trang gốc](${window.location.href})\n\n**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
+                content: `**Nguồn:** [Trang gốc](${window.location.href})\n\n**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
+                color: '#bbf7d0',
+                date: new Date().toISOString()
+              });
+              chrome.storage.local.set({ notes }, () => {
+                saveBtn.innerHTML = "Đã lưu!";
+                saveBtn.style.background = "#059669";
+                setTimeout(() => {
+                  removeTranslateUI();
+                }, 1500);
+              });
+            });
+          };
+        } else {
+          contentArea.innerHTML = `<div style="color: #ef4444;">Lỗi dịch thuật: ${response ? response.error : 'Không phản hồi'}</div>`;
+        }
+      });
     }
-  });
+  } catch (e) {
+    contentArea.innerHTML = `<div style="color: #ef4444;">Vui lòng tải lại trang (F5) để sử dụng lại sau khi cập nhật Extension.</div>`;
+  }
 }
