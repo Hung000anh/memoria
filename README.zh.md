@@ -1,6 +1,6 @@
-# Memoria
+# <img src="icons/icon48.png" height="36" align="center" alt="Memoria Icon" /> Memoria
 
-> **Memoria** - 一个个人虚拟助手，具有AI聊天（Gemini）、翻译、屏幕OCR、笔记管理、剪贴板历史、提醒和天气预报功能，无缝集成到浏览器的侧边栏中。
+> **Memoria** - 一个多功能的浏览器侧边栏，集成了翻译、OCR 文本识别、快速笔记、剪贴板历史记录、智能提醒、实时天气以及内置的 AI 聊天助手。
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-10b981?style=flat-square)
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square)

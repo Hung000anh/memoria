@@ -1,6 +1,6 @@
-# Memoria
+# <img src="icons/icon48.png" height="36" align="center" alt="Memoria Icon" /> Memoria
 
-> **Memoria** - A personal virtual assistant featuring AI Chat (Gemini), Translation, Screen OCR, Notes Manager, Clipboard History, Reminders, and Weather updates, seamlessly integrated into your browser's side panel.
+> **Memoria** - An all-in-one browser side panel that combines translation, OCR text recognition, quick notes, clipboard history, smart reminders, live weather, and a built-in AI chat assistant.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-10b981?style=flat-square)
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square)

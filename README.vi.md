@@ -1,6 +1,6 @@
-# Memoria
+# <img src="icons/icon48.png" height="36" align="center" alt="Memoria Icon" /> Memoria
 
-> **Memoria** - Một trợ lý ảo cá nhân tích hợp tính năng Trò chuyện AI (Gemini), Dịch thuật, Dịch qua màn hình OCR, Quản lý Ghi chú, Lịch sử Clipboard, Nhắc nhở, và Cập nhật thời tiết. Tất cả được tích hợp mượt mà vào bảng điều khiển bên (side panel) của trình duyệt.
+> **Memoria** - Một bảng điều khiển bên (side panel) đa năng trên trình duyệt, kết hợp dịch thuật, nhận dạng văn bản OCR, ghi chú nhanh, lịch sử clipboard, nhắc nhở thông minh, thời tiết trực tiếp và một trợ lý ảo AI tích hợp.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-10b981?style=flat-square)
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square)
