@@ -1,7 +1,6 @@
-<div align="center">
-  <img src="icons/icon48.png" height="80" alt="Memoria Icon" />
-  <h1>Memoria</h1>
-</div>
+<h1 align="center">
+  <img src="icons/icon48.png" height="44" alt="Memoria Icon" style="vertical-align: middle;" /> Memoria
+</h1>
 
 > **Memoria** - An all-in-one browser side panel that combines translation, OCR text recognition, quick notes, clipboard history, smart reminders, live weather, and a built-in AI chat assistant.
 

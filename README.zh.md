@@ -1,7 +1,6 @@
-<div align="center">
-  <img src="icons/icon48.png" height="80" alt="Memoria Icon" />
-  <h1>Memoria</h1>
-</div>
+<h1 align="center">
+  <img src="icons/icon48.png" height="44" alt="Memoria Icon" style="vertical-align: middle;" /> Memoria
+</h1>
 
 > **Memoria** - 一个多功能的浏览器侧边栏，集成了翻译、OCR 文本识别、快速笔记、剪贴板历史记录、智能提醒、实时天气以及内置的 AI 聊天助手。
 
