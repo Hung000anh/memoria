@@ -452,7 +452,8 @@ h2 {
 .btn-delete,
 .btn-copy,
 .btn-edit,
-.btn-lock {
+.btn-lock,
+.btn-icon {
   background: none;
   border: none;
   cursor: pointer;
@@ -467,19 +468,22 @@ h2 {
 .btn-delete svg,
 .btn-copy svg,
 .btn-edit svg,
-.btn-lock svg {
+.btn-lock svg,
+.btn-icon svg {
   pointer-events: none;
 }
 
 .btn-copy,
 .btn-edit,
-.btn-lock {
+.btn-lock,
+.btn-icon {
   color: var(--text-muted);
 }
 
 .btn-copy:hover,
 .btn-edit:hover,
-.btn-lock:hover {
+.btn-lock:hover,
+.btn-icon:hover {
   background: var(--nav-hover-bg);
   color: var(--primary);
 }

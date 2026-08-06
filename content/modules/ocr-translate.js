@@ -380,11 +380,12 @@
   function showErrorPopup(rect, message) {
     const c = getColors();
     const popup = createBasePopup(rect);
+    const safeMsg = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     popup.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
         <div>
           <div style="font-weight:600;color:#ef4444;font-size:13px;margin-bottom:5px;">${t('error')}</div>
-          <div style="font-size:13px;color:${c.muted};line-height:1.5;">${message}</div>
+          <div style="font-size:13px;color:${c.muted};line-height:1.5;">${safeMsg(message)}</div>
         </div>
         <button onclick="this.closest('#dauxanh-ocr-popup').remove()"
                 style="background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;flex-shrink:0;padding:0;line-height:1;">

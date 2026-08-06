@@ -55,6 +55,10 @@ const translations = {
     tsl_btn: "Dịch",
     tsl_result_label: "Bản dịch",
     tsl_copy: "Sao chép",
+    tsl_history_title: "Lịch sử dịch",
+    tsl_history_detail: "Chi tiết bản dịch",
+    tsl_history_empty: "Chưa có lịch sử dịch",
+    tsl_history_confirm_clear: "Xóa toàn bộ lịch sử dịch thuật?",
 
     // Clipboard
     clip_title: "Lịch sử Clipboard",
@@ -143,6 +147,12 @@ const translations = {
     stg_tsl_sec_target_label: "Ngôn ngữ đích phụ (nếu gốc trùng đích):",
     stg_tsl_save_btn: "Lưu Cài đặt Dịch",
 
+    stg_privacy_title: "Cài đặt Quyền riêng tư & Clipboard",
+    stg_privacy_help: "Cấu hình các tính năng liên quan đến thu thập và gửi dữ liệu.",
+    stg_privacy_clip_label: "Tự động theo dõi & lưu lịch sử Clipboard",
+    stg_privacy_ai_clip_label: "Gửi lịch sử Clipboard gần nhất làm ngữ cảnh cho AI Chat",
+    stg_privacy_save_btn: "Lưu Cài đặt Quyền riêng tư",
+
     stg_copy_title: "Cài đặt Bẻ khóa Sao chép (Allow Copy)",
     stg_copy_help: "Cấu hình tự động bẻ khóa hành vi chặn bôi đen, copy và chuột phải của website.",
     stg_copy_enable_label: "Bật Bẻ khóa bôi đen & sao chép",
@@ -214,6 +224,10 @@ const translations = {
     tsl_btn: "Translate",
     tsl_result_label: "Translation",
     tsl_copy: "Copy",
+    tsl_history_title: "Translation History",
+    tsl_history_detail: "Translation Detail",
+    tsl_history_empty: "No translation history",
+    tsl_history_confirm_clear: "Clear all translation history?",
 
     // Clipboard
     clip_title: "Clipboard History",
@@ -302,6 +316,12 @@ const translations = {
     stg_tsl_sec_target_label: "Secondary Target Language (if source matches target):",
     stg_tsl_save_btn: "Save Translation Settings",
 
+    stg_privacy_title: "Privacy & Clipboard Settings",
+    stg_privacy_help: "Configure data collection and context sharing options.",
+    stg_privacy_clip_label: "Auto-track & save Clipboard history",
+    stg_privacy_ai_clip_label: "Include recent Clipboard as context for AI Chat",
+    stg_privacy_save_btn: "Save Privacy Settings",
+
     stg_copy_title: "Allow Copy Settings",
     stg_copy_help: "Configure automatic unlocking of site selection, copy, and right-click restrictions.",
     stg_copy_enable_label: "Enable Unlocking Text Selection & Copy",
@@ -373,6 +393,10 @@ const translations = {
     tsl_btn: "翻译",
     tsl_result_label: "译文",
     tsl_copy: "复制",
+    tsl_history_title: "翻译历史",
+    tsl_history_detail: "翻译详情",
+    tsl_history_empty: "暂无翻译历史",
+    tsl_history_confirm_clear: "确认清空全部翻译历史吗？",
 
     // Clipboard
     clip_title: "剪贴板历史",

@@ -141,6 +141,26 @@
     </div>
 
     <div class="card">
+      <h2 data-i18n="stg_privacy_title">Cài đặt Quyền riêng tư & Clipboard</h2>
+      <p class="help-text" style="margin-bottom:12px;" data-i18n="stg_privacy_help">Cấu hình các tính năng liên quan đến thu thập và gửi dữ liệu.</p>
+
+      <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="enableClipboardHistory">
+        <label for="enableClipboardHistory" style="font-weight: 500; font-size: 14px; cursor: pointer;" data-i18n="stg_privacy_clip_label">Tự động theo dõi & lưu lịch sử Clipboard</label>
+      </div>
+
+      <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="includeClipboardInAIChat">
+        <label for="includeClipboardInAIChat" style="font-weight: 500; font-size: 14px; cursor: pointer;" data-i18n="stg_privacy_ai_clip_label">Gửi lịch sử Clipboard gần nhất làm ngữ cảnh cho AI Chat</label>
+      </div>
+
+      <div style="display: flex;">
+        <button id="savePrivacySettingsBtn" style="flex: 1;" data-i18n="stg_privacy_save_btn">Lưu Cài đặt Quyền riêng tư</button>
+      </div>
+      <p id="privacySaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;" data-i18n="stg_save_success">Đã lưu thành công!</p>
+    </div>
+
+    <div class="card">
       <h2 data-i18n="stg_copy_title">Cài đặt Bẻ khóa Sao chép (Allow Copy)</h2>
       <p class="help-text" style="margin-bottom:12px;" data-i18n="stg_copy_help">Cấu hình tự động bẻ khóa hành vi chặn bôi đen, copy và chuột phải của website.</p>
 
