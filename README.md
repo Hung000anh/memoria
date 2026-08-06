@@ -6,6 +6,8 @@
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
+[English](README.md) | [Tiếng Việt](README.vi.md) | [中文](README.zh.md)
+
 ---
 
 ## Features
