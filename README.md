@@ -1,12 +1,19 @@
-# <img src="icons/icon48.png" height="36" align="center" alt="Memoria Icon" /> Memoria
+<div align="center">
+  <img src="icons/icon48.png" height="80" alt="Memoria Icon" />
+  <h1>Memoria</h1>
+</div>
 
 > **Memoria** - An all-in-one browser side panel that combines translation, OCR text recognition, quick notes, clipboard history, smart reminders, live weather, and a built-in AI chat assistant.
+
+<div align="center">
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-10b981?style=flat-square)
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
 [English](README.md) | [Tiếng Việt](README.vi.md) | [中文](README.zh.md)
+
+</div>
 
 ---
 
