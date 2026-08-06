@@ -305,13 +305,13 @@
   <!-- Modal Nhập/Tạo Mật khẩu -->
   <div class="modal" id="passwordModal">
     <div class="modal-content" style="max-width: 320px;">
-      <h3 id="passwordModalTitle" style="margin-bottom: 16px; font-size: 16px; font-weight: 600; text-align: center;">Tạo mật mã để Khóa</h3>
+      <h3 id="passwordModalTitle" style="margin-bottom: 16px; font-size: 16px; font-weight: 600; text-align: center;" data-i18n="notes_lock_title">Tạo mật mã để Khóa</h3>
       <div class="input-group" style="margin-bottom: 16px;">
-        <input type="password" id="passwordModalInput" placeholder="Nhập mật mã..." style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit; text-align: center; letter-spacing: 2px;">
+        <input type="password" id="passwordModalInput" data-i18n-placeholder="notes_pass_placeholder" placeholder="Nhập mật mã..." style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit; text-align: center; letter-spacing: 2px;">
       </div>
       <p id="passwordErrorMsg" style="color: #ef4444; font-size: 12px; margin-bottom: 12px; display: none; text-align: center;"></p>
       <div style="display: flex; gap: 8px;">
-        <button id="passwordConfirmBtn" class="btn-primary" style="flex: 1;">Xác nhận</button>
+        <button id="passwordConfirmBtn" class="btn-primary" style="flex: 1;" data-i18n="btn_confirm">Xác nhận</button>
         <button id="passwordCancelBtn" class="btn-cancel" style="flex: 1;" data-i18n="btn_cancel">Hủy</button>
       </div>
     </div>
