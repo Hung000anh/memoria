@@ -1,20 +1,17 @@
-<h1 align="center">
-  <img src="icons/icon48.png" height="36" alt="Memoria Icon" style="vertical-align: middle;" /> Memoria
-</h1>
-
-> **Memoria** - Một bảng điều khiển bên (side panel) đa năng trên trình duyệt, kết hợp dịch thuật, nhận dạng văn bản OCR, ghi chú nhanh, lịch sử clipboard, nhắc nhở thông minh, thời tiết trực tiếp và một trợ lý ảo AI tích hợp.
-
 <div align="center">
+
+# <img src="icons/icon48.png" height="36" align="center" alt="Memoria Icon" /> Memoria
+**Một bảng điều khiển bên (side panel) đa năng trên trình duyệt, kết hợp dịch thuật, nhận dạng văn bản OCR, ghi chú nhanh, lịch sử clipboard, nhắc nhở thông minh, thời tiết trực tiếp và một trợ lý ảo AI tích hợp.**
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-10b981?style=flat-square)
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
+---
 [English](README.md) | [Tiếng Việt](README.vi.md) | [中文](README.zh.md)
+---
 
 </div>
-
----
 
 ## Tính năng
 
