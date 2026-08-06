@@ -1,24 +1,112 @@
 # Memoria
 
-Memoria - Trợ lý ảo toàn diện với AI, Quản lý Lịch trình, Ghi chú và Clipboard thông minh.
+> **Memoria** - A personal virtual assistant featuring AI Chat (Gemini), Translation, Screen OCR, Notes Manager, Clipboard History, Reminders, and Weather updates, seamlessly integrated into your browser's side panel.
 
-## Tính năng chính
-- **Quản lý Ghi chú**: Tạo, sửa, xóa các ghi chú cá nhân nhanh chóng.
-- **AI Chatbot**: Tích hợp chatbot AI (Gemini) thông minh giúp giải đáp thắc mắc và hỗ trợ công việc.
-- **Lịch trình & Nhắc nhở**: Lên lịch các công việc và nhận thông báo nhắc nhở tiện lợi.
-- **Quản lý Clipboard**: Lưu lại lịch sử sao chép một cách an toàn và dễ dàng truy xuất.
-- **Weather & Categories**: Theo dõi thời tiết và truy cập nhanh các dịch vụ thông dụng qua Category Map.
+![Manifest V3](https://img.shields.io/badge/Manifest-V3-10b981?style=flat-square)
+![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
-## Cài đặt
-1. Clone hoặc tải mã nguồn về máy:
+---
+
+## Features
+
+- **Memoria AI Chat**: Integrated with Gemini API. Supports automatic key rotation when rate limits are reached and uses your clipboard history as context.
+  
+  ![AI Chat](images/ai_chat.png)
+
+- **Translation & History**: Quickly translate text within the side panel or directly on any web page. Automatically saves translation history and provides a side-by-side view (Original - Translated).
+  
+  *Side Panel Translation:*
+  ![Translation Panel](images/translate.png)
+  
+  *On-Page Web Translation:*
+  ![Web Translation](images/translateweb.gif)
+
+- **Screen OCR Translation**: Press `Alt + S` to capture a specific screen area, extract text from images (powered by Tesseract.js Offscreen), and translate it instantly.
+  
+  ![OCR Translation](images/ocrweb.gif)
+
+- **Clipboard History**: Track and search through copied text, including website sources, and export context to the AI.
+  
+  ![Clipboard History](images/clipboard.gif)
+
+- **Notes Manager**: Create and edit Markdown-supported notes, secured with a personal passcode.
+   ![Notes](images/notes.gif)
+- **Timers & Reminders**: Set recurring alarms, play audio notifications, and manage visual task reminders.
+  
+  *Reminder Setup (Side Panel):*
+  ![Reminder Setup](images/reminer.png)
+  
+  *Timer Alert Popup:*
+  ![Timer Alert](images/timer.gif)
+
+- **Weather Forecast**: Automatically detect location via IP or search for specific cities to view detailed hourly and weekly weather forecasts.
+  
+  ![Weather Forecast](images/weather.png)
+
+- **Copy Protection Bypass**: Automatically removes text-selection, copy, and right-click restrictions on restricted websites.
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Command / Function | Description |
+| :--- | :--- | :--- |
+| **`Alt + Q`** | Open Memoria | Quickly open the Memoria Side Panel |
+| **`Alt + A`** | Open AI Chat | Open the Side Panel and navigate directly to the Chat tab |
+| **`Alt + W`** | Open Translation | Open the Side Panel, switch to the Translation tab, and focus the input field |
+| **`Alt + S`** | Trigger OCR | Activate screen-capture mode for OCR and translation |
+
+---
+
+## Installation
+
+1. Clone or download the source code:
    ```bash
    git clone https://github.com/Hung000anh/memoria.git
    ```
-2. Mở trình duyệt (Chrome/Edge/Brave).
-3. Truy cập vào trang quản lý tiện ích: `chrome://extensions/` (hoặc `edge://extensions/`).
-4. Bật chế độ **Developer mode** (Chế độ dành cho nhà phát triển).
-5. Nhấp vào **Load unpacked** (Tải tiện ích đã giải nén) và chọn thư mục chứa mã nguồn vừa tải về.
-6. Hoàn tất! Nhấp vào biểu tượng Memoria trên thanh công cụ để trải nghiệm.
+2. Open your browser (Chrome / CocCoc / Edge / Brave).
+3. Navigate to the extensions management page:
+   - Chrome: `chrome://extensions/`
+   - CocCoc: `coccoc://extensions/`
+   - Edge: `edge://extensions/`
+4. Enable **Developer mode**.
+5. Click **Load unpacked** and select the downloaded source code folder.
+6. Done! Click the Memoria icon on your toolbar to start using it.
 
-## Giấy phép
-Dự án này được phân phối dưới giấy phép [MIT](LICENSE).
+---
+
+## Gemini API Key Configuration
+
+1. Register for a free API Key at [Google AI Studio](https://aistudio.google.com/).
+2. Right-click the Memoria icon and select **Options** (or open Settings within the extension).
+3. Enter your Gemini API Key and click **Add Key**. You can add multiple keys to let the system automatically rotate them if one encounters rate limits.
+
+---
+
+## Project Structure
+
+```
+memoria/
+├── manifest.json            # Chrome Extension Manifest V3 configuration
+├── background.js            # Main Background Service Worker
+├── background/
+│   └── services/            # Background tasks (Alarms, Translate API)
+├── content/
+│   └── modules/             # Injected scripts (Clipboard, Translate, OCR, AllowCopy)
+├── offscreen/               # Offscreen document for OCR processing (Tesseract.js)
+├── ui/
+│   ├── sidepanel.html       # Main Side Panel UI
+│   ├── settings.html        # Settings / Options page
+│   ├── css/                 # UI Stylesheets
+│   └── js/
+│       ├── core/            # Configuration, i18n, Gemini API wrapper, Utilities
+│       └── features/        # Feature controllers (Chat, Notes, Reminders, Translate, Weather)
+└── CHANGELOG.md             # Version update history
+```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

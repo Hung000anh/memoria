@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Memoria",
-  "version": "1.0",
-  "description": "Memoria - Trợ lý ảo cá nhân với AI Chat, Ghi chú, Clipboard, Hẹn giờ, Dịch thuật, OCR và Thời tiết",
+  "version": "1.1.0",
+  "description": "Memoria - Personal virtual assistant featuring AI Chat, Notes, Clipboard, Timer, Translation, OCR, and Weather.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -43,7 +43,7 @@
     }
   ],
   "action": {
-    "default_title": "Mở Side Panel Memoria"
+    "default_title": "Open Memoria Side Panel"
   },
   "commands": {
     "_execute_action": {
@@ -51,40 +51,40 @@
         "default": "Alt+Q",
         "mac": "Alt+Q"
       },
-      "description": "Mở bảng điều khiển Memoria (Chat)"
+      "description": "Open Memoria Panel"
     },
     "open_chat_tab": {
       "suggested_key": {
         "default": "Alt+A",
         "mac": "Alt+A"
       },
-      "description": "Mở tab AI Chat"
+      "description": "Open AI Chat"
     },
     "open_translate_tab": {
       "suggested_key": {
         "default": "Alt+W",
         "mac": "Alt+W"
       },
-      "description": "Mở tab Dịch thuật"
+      "description": "Open Translation"
     },
     "open_notes_tab": {
-      "description": "Mở tab Ghi chú"
+      "description": "Open Notes"
     },
     "trigger_ocr": {
       "suggested_key": {
         "default": "Alt+S",
         "mac": "Alt+S"
       },
-      "description": "Kích hoạt quét OCR và Dịch"
+      "description": "Trigger OCR and Translation"
     },
     "open_timer_tab": {
-      "description": "Mở tab Hẹn giờ"
+      "description": "Open Timer"
     },
     "open_weather_tab": {
-      "description": "Mở tab Thời tiết"
+      "description": "Open Weather"
     },
     "open_settings_tab": {
-      "description": "Mở tab Cài đặt"
+      "description": "Open Settings"
     }
   },
   "side_panel": {

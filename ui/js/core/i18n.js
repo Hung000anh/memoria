@@ -27,6 +27,7 @@ const translations = {
     // Common
     btn_cancel: "Hủy",
     btn_delete: "Xóa",
+    btn_confirm: "Xác nhận",
     stg_save_success: "Đã lưu thành công!",
 
     // Languages Options
@@ -75,6 +76,11 @@ const translations = {
     notes_field_content: "Nội dung",
     notes_content_placeholder: "Nội dung ghi chú (Hỗ trợ Markdown)...",
     notes_save_btn: "Lưu ghi chú",
+    notes_lock_title: "Tạo mật mã để Khóa",
+    notes_unlock_title: "Nhập mật mã để Mở khóa",
+    notes_view_title: "Nhập mật mã để Xem",
+    notes_pass_placeholder: "Nhập mật mã...",
+    notes_locked_msg: "Nội dung đã bị khóa, vui lòng mở khóa để xem...",
 
     // Reminders
     timer_title: "Hẹn giờ",
@@ -83,6 +89,8 @@ const translations = {
     timer_repeat: "Lặp lại tự động",
     timer_set_btn: "Đặt hẹn giờ",
     timer_list_title: "Danh sách hẹn giờ",
+    reminder_overlay_title: "✨ Memoria nhắc nhở",
+    reminder_overlay_btn: "Đã hiểu",
 
     // Weather
     weather_title: "Thời tiết",
@@ -196,6 +204,7 @@ const translations = {
     // Common
     btn_cancel: "Cancel",
     btn_delete: "Delete",
+    btn_confirm: "Confirm",
     stg_save_success: "Saved successfully!",
 
     // Languages Options
@@ -244,6 +253,11 @@ const translations = {
     notes_field_content: "Content",
     notes_content_placeholder: "Note content (Markdown supported)...",
     notes_save_btn: "Save Note",
+    notes_lock_title: "Create passcode to Lock",
+    notes_unlock_title: "Enter passcode to Unlock",
+    notes_view_title: "Enter passcode to View",
+    notes_pass_placeholder: "Enter passcode...",
+    notes_locked_msg: "Content is locked, please unlock to view...",
 
     // Reminders
     timer_title: "Timer",
@@ -252,6 +266,8 @@ const translations = {
     timer_repeat: "Repeat automatically",
     timer_set_btn: "Set Timer",
     timer_list_title: "Timer List",
+    reminder_overlay_title: "✨ Memoria Reminder",
+    reminder_overlay_btn: "Got it",
 
     // Weather
     weather_title: "Weather",
@@ -365,6 +381,7 @@ const translations = {
     // Common
     btn_cancel: "取消",
     btn_delete: "删除",
+    btn_confirm: "确认",
     stg_save_success: "保存成功！",
 
     // Languages Options
@@ -413,6 +430,11 @@ const translations = {
     notes_field_content: "内容",
     notes_content_placeholder: "笔记内容 (支持 Markdown)...",
     notes_save_btn: "保存笔记",
+    notes_lock_title: "创建密码以锁定",
+    notes_unlock_title: "输入密码以解锁",
+    notes_view_title: "输入密码以查看",
+    notes_pass_placeholder: "输入密码...",
+    notes_locked_msg: "内容已锁定，请解锁以查看...",
 
     // Reminders
     timer_title: "定时器",
@@ -421,6 +443,8 @@ const translations = {
     timer_repeat: "自动重复",
     timer_set_btn: "设置定时器",
     timer_list_title: "定时器列表",
+    reminder_overlay_title: "✨ Memoria 提醒",
+    reminder_overlay_btn: "知道了",
 
     // Weather
     weather_title: "天气",

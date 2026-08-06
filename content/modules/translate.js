@@ -4,13 +4,30 @@ let translateIconContainer = null;
 let translatePopup = null;
 let dauxanhIsDarkMode = false;
 let dauxanhResizeObserver = null;
+let dauxanhDict = {};
+
+function getTslT(key, defaultVal) {
+  return dauxanhDict[key] || defaultVal;
+}
 
 try {
   if (chrome.storage?.local) {
-    chrome.storage.local.get({ isDarkMode: false }, data => dauxanhIsDarkMode = data.isDarkMode);
+    chrome.storage.local.get({ isDarkMode: false, appLanguage: 'vi', appTranslations: null }, data => {
+      dauxanhIsDarkMode = data.isDarkMode;
+      if (data.appTranslations && data.appTranslations[data.appLanguage]) {
+        dauxanhDict = data.appTranslations[data.appLanguage];
+      }
+    });
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'local' && changes.isDarkMode) {
-        dauxanhIsDarkMode = changes.isDarkMode.newValue;
+      if (area === 'local') {
+        if (changes.isDarkMode) dauxanhIsDarkMode = changes.isDarkMode.newValue;
+        if (changes.appLanguage || changes.appTranslations) {
+           chrome.storage.local.get({ appLanguage: 'vi', appTranslations: null }, data => {
+              if (data.appTranslations && data.appTranslations[data.appLanguage]) {
+                dauxanhDict = data.appTranslations[data.appLanguage];
+              }
+           });
+        }
       }
     });
   }
@@ -183,7 +200,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   } catch (e) {}
 
   const title = document.createElement("div");
-  title.innerHTML = `<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px; line-height:1;">${iconUrl ? `<img src="${iconUrl}" style="width:16px;height:16px;border-radius:50%; display:block; margin:0; padding:0; object-fit:contain;">` : ''} Dịch thuật</span>`;
+  title.innerHTML = `<span style="font-weight: 600; color: #10b981; display:flex; align-items:center; gap:6px; line-height:1;">${iconUrl ? `<img src="${iconUrl}" style="width:16px;height:16px;border-radius:50%; display:block; margin:0; padding:0; object-fit:contain;">` : ''} ${getTslT('tsl_title', 'Dịch thuật')}</span>`;
 
   const closeBtn = document.createElement("button");
   closeBtn.innerHTML = "&times;";
@@ -222,7 +239,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   const contentArea = document.createElement("div");
   contentArea.id = "dauxanh-translate-content";
   contentArea.style.cssText = "font-size: 14px; flex: 1; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; line-height: 1.5; margin-bottom: 12px; min-height: 0;";
-  contentArea.innerHTML = `<div style="color: ${originalTxtColor}; font-style: italic; text-align: center; display: flex; align-items: center; justify-content: center; height: 100%;">Đang dịch...</div>`;
+  contentArea.innerHTML = `<div style="color: ${originalTxtColor}; font-style: italic; text-align: center; display: flex; align-items: center; justify-content: center; height: 100%;">${getTslT('ocr_translating', 'Đang dịch...')}</div>`;
   translatePopup.appendChild(contentArea);
 
   const dividerColor = dauxanhIsDarkMode ? "#374151" : "#f3f4f6";
@@ -230,7 +247,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
   footer.style.cssText = `display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid ${dividerColor}; padding-top: 12px; flex-shrink: 0;`;
 
   const saveBtn = document.createElement("button");
-  saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Lưu Ghi chú';
+  saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> ${getTslT('ocr_save', 'Lưu Ghi chú')}`;
   saveBtn.style.cssText = "background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: none; align-items: center;";
   saveBtn.onmouseover = () => saveBtn.style.background = "#059669";
   saveBtn.onmouseout = () => saveBtn.style.background = "#10b981";
@@ -318,30 +335,33 @@ function showTranslatePopup(rect, mouseX, mouseY) {
           contentArea.innerHTML = `
             <div class="dauxanh-translation-grid">
               <div class="dauxanh-original">
-                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${originalTxtColor};">Bản gốc</div>
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${originalTxtColor};">${getTslT('tsl_source_label', 'Bản gốc')}</div>
                 <div style="color: ${originalTxtColor}; white-space: pre-wrap;">${safeOriginal}</div>
               </div>
               <div class="dauxanh-translated">
-                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${translatedTxtColor};">Bản dịch</div>
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${translatedTxtColor};">${getTslT('tsl_result_label', 'Bản dịch')}</div>
                 <div style="color: ${translatedTxtColor}; white-space: pre-wrap;">${safeTranslated}</div>
               </div>
             </div>
           `;
           saveBtn.style.display = "inline-flex";
           saveBtn.onclick = () => {
-            saveBtn.innerText = "Đang lưu...";
+            saveBtn.innerText = getTslT('ocr_saving', 'Đang lưu...');
             chrome.storage.local.get({ notes: [] }, (data) => {
               const notes = data.notes;
+              const sourceTitle = getTslT('ocr_source', 'Nguồn');
+              const origTitle = getTslT('tsl_source_label', 'Bản gốc');
+              const transTitle = getTslT('tsl_result_label', 'Bản dịch');
               notes.unshift({
                 id: Date.now(),
-                title: 'Bản dịch từ ' + window.location.hostname,
-                text: `**Nguồn:** [Trang gốc](${window.location.href})\n\n**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
-                content: `**Nguồn:** [Trang gốc](${window.location.href})\n\n**Bản gốc:**\n${dauxanhSelectedText}\n\n**Bản dịch:**\n${response.translatedText}`,
+                title: transTitle + ' - ' + window.location.hostname,
+                text: `**${sourceTitle}:** [Link](${window.location.href})\n\n**${origTitle}:**\n${dauxanhSelectedText}\n\n**${transTitle}:**\n${response.translatedText}`,
+                content: `**${sourceTitle}:** [Link](${window.location.href})\n\n**${origTitle}:**\n${dauxanhSelectedText}\n\n**${transTitle}:**\n${response.translatedText}`,
                 color: '#bbf7d0',
                 date: new Date().toISOString()
               });
               chrome.storage.local.set({ notes }, () => {
-                saveBtn.innerHTML = "Đã lưu!";
+                saveBtn.innerHTML = getTslT('ocr_saved', 'Đã lưu!');
                 saveBtn.style.background = "#059669";
                 setTimeout(() => {
                   removeTranslateUI();
@@ -351,7 +371,7 @@ function showTranslatePopup(rect, mouseX, mouseY) {
           };
         } else {
           const safeErr = safeHtml(response ? response.error : 'Không phản hồi');
-          contentArea.innerHTML = `<div style="color: #ef4444;">Lỗi dịch thuật: ${safeErr}</div>`;
+          contentArea.innerHTML = `<div style="color: #ef4444;">${getTslT('ocr_error_translate', 'Lỗi dịch thuật:')} ${safeErr}</div>`;
         }
       });
     }

@@ -1,13 +1,29 @@
 // Lắng nghe trạng thái Dark Mode
 let dauxanhReminderIsDarkMode = false;
+let dauxanhReminderDict = {};
+
+function getReminderT(key, defaultVal) {
+  return dauxanhReminderDict[key] || defaultVal;
+}
+
 try {
   if (chrome.storage?.local) {
-    chrome.storage.local.get({ isDarkMode: false }, (data) => {
+    chrome.storage.local.get({ isDarkMode: false, appLanguage: 'vi', appTranslations: null }, (data) => {
       dauxanhReminderIsDarkMode = data.isDarkMode;
+      if (data.appTranslations && data.appTranslations[data.appLanguage]) {
+        dauxanhReminderDict = data.appTranslations[data.appLanguage];
+      }
     });
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'local' && changes.isDarkMode) {
-        dauxanhReminderIsDarkMode = changes.isDarkMode.newValue;
+      if (area === 'local') {
+        if (changes.isDarkMode) dauxanhReminderIsDarkMode = changes.isDarkMode.newValue;
+        if (changes.appLanguage || changes.appTranslations) {
+           chrome.storage.local.get({ appLanguage: 'vi', appTranslations: null }, data => {
+              if (data.appTranslations && data.appTranslations[data.appLanguage]) {
+                dauxanhReminderDict = data.appTranslations[data.appLanguage];
+              }
+           });
+        }
       }
     });
   }
@@ -169,7 +185,7 @@ try {
         `;
 
         const title = document.createElement("h2");
-        title.textContent = "✨ Memoria nhắc nhở";
+        title.textContent = getReminderT('reminder_overlay_title', "✨ Memoria nhắc nhở");
         title.style.cssText = `
           box-sizing: border-box !important;
           display: block !important;
@@ -197,7 +213,7 @@ try {
         `;
 
         const btn = document.createElement("button");
-        btn.textContent = "Đã hiểu";
+        btn.textContent = getReminderT('reminder_overlay_btn', "Đã hiểu");
         btn.style.cssText = `
           box-sizing: border-box !important;
           display: inline-block !important;
