@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="icons/icon48.png" height="44" alt="Memoria Icon" style="vertical-align: middle;" /> Memoria
+  <img src="icons/icon48.png" height="36" alt="Memoria Icon" style="vertical-align: middle;" /> Memoria
 </h1>
 
 > **Memoria** - Một bảng điều khiển bên (side panel) đa năng trên trình duyệt, kết hợp dịch thuật, nhận dạng văn bản OCR, ghi chú nhanh, lịch sử clipboard, nhắc nhở thông minh, thời tiết trực tiếp và một trợ lý ảo AI tích hợp.
