@@ -19,9 +19,11 @@
 - **翻译与历史记录**: 在侧边栏内或任何网页上直接快速翻译文本。自动保存翻译历史记录并提供并排视图（原文 - 译文）。
   
   *侧边栏翻译:*
+  
   ![Translation Panel](images/translate.png)
   
   *网页划词翻译:*
+  
   ![Web Translation](images/translateweb.gif)
 
 - **屏幕 OCR 翻译**: 按下 `Alt + S` 截取屏幕特定区域，从图像中提取文本（由 Tesseract.js Offscreen 提供支持）并立即翻译。
@@ -38,9 +40,11 @@
 - **定时器与提醒**: 设置循环闹钟，播放音频通知，并管理可视化的任务提醒。
   
   *提醒设置 (侧边栏):*
+  
   ![Reminder Setup](images/reminer.png)
   
   *定时器提醒弹窗:*
+  
   ![Timer Alert](images/timer.gif)
 
 - **天气预报**: 自动通过 IP 检测位置或搜索特定城市，查看详细的逐小时和按周天气预报。

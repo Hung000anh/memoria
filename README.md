@@ -19,9 +19,11 @@
 - **Translation & History**: Quickly translate text within the side panel or directly on any web page. Automatically saves translation history and provides a side-by-side view (Original - Translated).
   
   *Side Panel Translation:*
+  
   ![Translation Panel](images/translate.png)
   
   *On-Page Web Translation:*
+  
   ![Web Translation](images/translateweb.gif)
 
 - **Screen OCR Translation**: Press `Alt + S` to capture a specific screen area, extract text from images (powered by Tesseract.js Offscreen), and translate it instantly.
@@ -37,9 +39,11 @@
 - **Timers & Reminders**: Set recurring alarms, play audio notifications, and manage visual task reminders.
   
   *Reminder Setup (Side Panel):*
+  
   ![Reminder Setup](images/reminer.png)
   
   *Timer Alert Popup:*
+  
   ![Timer Alert](images/timer.gif)
 
 - **Weather Forecast**: Automatically detect location via IP or search for specific cities to view detailed hourly and weekly weather forecasts.

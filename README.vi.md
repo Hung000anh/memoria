@@ -19,9 +19,11 @@
 - **Dịch thuật & Lịch sử**: Dịch văn bản nhanh chóng ngay trong side panel hoặc trực tiếp trên bất kỳ trang web nào. Tự động lưu lịch sử dịch và cung cấp chế độ xem song song (Bản gốc - Bản dịch).
   
   *Dịch trong Side Panel:*
+  
   ![Translation Panel](images/translate.png)
   
   *Dịch nhanh trên Trang web:*
+  
   ![Web Translation](images/translateweb.gif)
 
 - **Dịch thuật qua màn hình (OCR)**: Nhấn `Alt + S` để chụp một khu vực cụ thể trên màn hình, trích xuất văn bản từ hình ảnh (sử dụng Tesseract.js) và dịch ngay lập tức.
@@ -38,9 +40,11 @@
 - **Hẹn giờ & Nhắc nhở**: Đặt báo thức lặp lại, phát âm thanh thông báo và quản lý nhắc nhở công việc trực quan.
   
   *Cài đặt Hẹn giờ (Side Panel):*
+  
   ![Reminder Setup](images/reminer.png)
   
   *Popup Thông báo Hẹn giờ:*
+  
   ![Timer Alert](images/timer.gif)
 
 - **Dự báo Thời tiết**: Tự động phát hiện vị trí qua IP hoặc tìm kiếm các thành phố cụ thể để xem dự báo thời tiết chi tiết theo giờ và theo tuần.
