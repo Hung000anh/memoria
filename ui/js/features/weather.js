@@ -145,11 +145,11 @@ document.addEventListener('DOMContentLoaded', () => {
   async function autoLocateByIP() {
     try {
       loadingDiv.style.display = 'block';
-      const res = await fetch('http://ip-api.com/json/');
+      const res = await fetch('https://ipapi.co/json/');
       if (!res.ok) throw new Error();
       const data = await res.json();
-      if (data.status === 'success') {
-        await fetchWeatherByCoords(data.lat, data.lon, data.city);
+      if (data.city && data.latitude && data.longitude) {
+        await fetchWeatherByCoords(data.latitude, data.longitude, data.city);
       } else {
         throw new Error();
       }
@@ -184,6 +184,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Re-render weather when language changes
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.appLanguage) {
+      chrome.storage.local.get(['weatherCache'], (data) => {
+        if (data.weatherCache && data.weatherCache.data) {
+          renderWeather(data.weatherCache.data, data.weatherCache.cityName);
+        }
+      });
+    }
+  });
 
   initWeather();
 });

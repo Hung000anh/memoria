@@ -334,8 +334,8 @@ document.addEventListener('DOMContentLoaded', () => {
     saveChatState();
 
     // Lấy context
-    chrome.storage.local.get({ notes: [], schedules: [], clipboardHistory: [], weatherCache: null, timeStats: {} }, async (data) => {
-      const clipText = data.clipboardHistory.slice(0, 10).map(c => c.text).join(' | ');
+    chrome.storage.local.get({ notes: [], schedules: [], clipboardHistory: [], weatherCache: null, timeStats: {}, includeClipboardInAIChat: true }, async (data) => {
+      const clipText = data.includeClipboardInAIChat ? data.clipboardHistory.slice(0, 10).map(c => c.text).join(' | ') : 'Tắt';
       const notesText = data.notes.map(n => `[ID:${n.id}] [${n.title}] ${n.text || n.content || ''}`).join('; ');
       const schText = data.schedules.map(s => `[ID:${s.id}] [${s.date} ${s.time || ''}] ${s.title}: ${s.content || ''} (${s.recurrence})`).join('; ');
       

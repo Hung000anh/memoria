@@ -176,6 +176,17 @@
             </div>
             <div id="tslResult" style="width: 100%; flex: 1; min-height: 120px; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color); color: var(--text-color); font-family: inherit; overflow-y: auto; white-space: pre-wrap;"></div>
           </div>
+
+          <!-- Lịch sử dịch thuật -->
+          <div style="margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 0; flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="font-size: 14px; margin: 0; color: var(--primary); font-weight: 600;" data-i18n="tsl_history_title">Lịch sử dịch</h3>
+              <button id="clearTslHistoryBtn" class="btn-delete" style="font-size: 11px; padding: 4px 8px; font-weight: normal; display: none;">
+                <span data-i18n="clip_clear_all">Xóa tất cả</span>
+              </button>
+            </div>
+            <ul id="tslHistoryList" class="list" style="overflow-y: auto; flex: 1; margin: 0; padding: 0; list-style: none;"></ul>
+          </div>
         </div>
       </div>
 
@@ -336,6 +347,28 @@
       <div style="display: flex; gap: 8px;">
         <button id="addNoteBtn" class="btn-primary" style="flex: 1;" data-i18n="notes_save_btn">Lưu ghi chú</button>
         <button id="cancelNoteBtn" class="btn-cancel" style="flex: 1;" data-i18n="btn_cancel">Hủy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Translate History Modal -->
+  <div id="viewTranslateHistoryModal" class="modal">
+    <div class="modal-content" style="max-width: 560px; width: 95%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="color: var(--primary); margin: 0; font-size: 16px; font-weight: 600;" data-i18n="tsl_history_detail">Chi tiết bản dịch</h3>
+        <button id="closeViewTslHistoryBtn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; display: flex; align-items: center; justify-content: center;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+        <div style="display: flex; flex-direction: column;">
+          <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;" data-i18n="tsl_source_label">Văn bản gốc</label>
+          <div id="tslHistoryOriginal" style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; min-height: 120px; max-height: 240px; overflow-y: auto; white-space: pre-wrap; font-size: 13px; color: var(--text-color); box-sizing: border-box;"></div>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+          <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;" data-i18n="tsl_result_label">Bản dịch</label>
+          <div id="tslHistoryTranslated" style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; min-height: 120px; max-height: 240px; overflow-y: auto; white-space: pre-wrap; font-size: 13px; color: var(--text-color); box-sizing: border-box;"></div>
+        </div>
       </div>
     </div>
   </div>

@@ -116,6 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveTranslateSettingsBtn = document.getElementById('saveTranslateSettingsBtn');
   const translateSaveMsg = document.getElementById('translateSaveMsg');
 
+  // --- Logic Cài đặt Quyền riêng tư & Clipboard ---
+  const enableClipboardHistory = document.getElementById('enableClipboardHistory');
+  const includeClipboardInAIChat = document.getElementById('includeClipboardInAIChat');
+  const savePrivacySettingsBtn = document.getElementById('savePrivacySettingsBtn');
+  const privacySaveMsg = document.getElementById('privacySaveMsg');
+
   // --- Logic Cài đặt Bẻ khóa Sao chép ---
   const allowCopyEnabled = document.getElementById('allowCopyEnabled');
   const allowCopyExclude = document.getElementById('allowCopyExclude');
@@ -123,13 +129,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const copySaveMsg = document.getElementById('copySaveMsg');
 
   function loadTranslateSettings() {
-    chrome.storage.local.get({ translateTargetLang: 'vi', translateSecondaryTargetLang: 'en', allowCopy: false, allowCopyExcludeDomains: [] }, (data) => {
+    chrome.storage.local.get({
+      translateTargetLang: 'vi',
+      translateSecondaryTargetLang: 'en',
+      allowCopy: false,
+      allowCopyExcludeDomains: [],
+      enableClipboardHistory: true,
+      includeClipboardInAIChat: true
+    }, (data) => {
       if (translateTargetLang) translateTargetLang.value = data.translateTargetLang;
       if (translateSecondaryTargetLang) translateSecondaryTargetLang.value = data.translateSecondaryTargetLang;
       if (allowCopyEnabled) allowCopyEnabled.checked = data.allowCopy;
       if (allowCopyExclude) {
         allowCopyExclude.value = data.allowCopyExcludeDomains.join('\n');
       }
+      if (enableClipboardHistory) enableClipboardHistory.checked = data.enableClipboardHistory;
+      if (includeClipboardInAIChat) includeClipboardInAIChat.checked = data.includeClipboardInAIChat;
+    });
+  }
+
+  if (savePrivacySettingsBtn) {
+    savePrivacySettingsBtn.addEventListener('click', () => {
+      const clipVal = enableClipboardHistory ? enableClipboardHistory.checked : true;
+      const aiClipVal = includeClipboardInAIChat ? includeClipboardInAIChat.checked : true;
+      chrome.storage.local.set({ enableClipboardHistory: clipVal, includeClipboardInAIChat: aiClipVal }, () => {
+        privacySaveMsg.style.display = 'block';
+        setTimeout(() => privacySaveMsg.style.display = 'none', 3000);
+      });
     });
   }
 

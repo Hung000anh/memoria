@@ -64,7 +64,8 @@ chrome.sidePanel
 // Lắng nghe các event từ content script hoặc popup/sidepanel cho lưu trữ Clipboard
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "save_clipboard") {
-    chrome.storage.local.get({ clipboardHistory: [] }, (data) => {
+    chrome.storage.local.get({ clipboardHistory: [], enableClipboardHistory: true }, (data) => {
+      if (!data.enableClipboardHistory) return;
       let history = data.clipboardHistory;
       // Tránh lưu trùng lặp liên tiếp
       if (history.length === 0 || history[0].text !== request.text) {

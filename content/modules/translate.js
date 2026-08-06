@@ -96,6 +96,16 @@ document.addEventListener("mouseup", (e) => {
   }
 });
 
+function safeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function showTranslatePopup(rect, mouseX, mouseY) {
   if (translateIconContainer) translateIconContainer.style.display = 'none';
   if (translatePopup) document.body.removeChild(translatePopup);
@@ -303,15 +313,17 @@ function showTranslatePopup(rect, mouseX, mouseY) {
           const translatedTxtColor = dauxanhIsDarkMode ? "#f9fafb" : "#111827";
           const borderDashed = dauxanhIsDarkMode ? "#4b5563" : "#e5e7eb";
           translatePopup.style.setProperty('--dauxanh-border-dashed', borderDashed);
+          const safeOriginal = safeHtml(dauxanhSelectedText);
+          const safeTranslated = safeHtml(response.translatedText);
           contentArea.innerHTML = `
             <div class="dauxanh-translation-grid">
               <div class="dauxanh-original">
                 <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${originalTxtColor};">Bản gốc</div>
-                <div style="color: ${originalTxtColor}; white-space: pre-wrap;">${dauxanhSelectedText}</div>
+                <div style="color: ${originalTxtColor}; white-space: pre-wrap;">${safeOriginal}</div>
               </div>
               <div class="dauxanh-translated">
                 <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; opacity: 0.6; color: ${translatedTxtColor};">Bản dịch</div>
-                <div style="color: ${translatedTxtColor}; white-space: pre-wrap;">${response.translatedText}</div>
+                <div style="color: ${translatedTxtColor}; white-space: pre-wrap;">${safeTranslated}</div>
               </div>
             </div>
           `;
@@ -338,7 +350,8 @@ function showTranslatePopup(rect, mouseX, mouseY) {
             });
           };
         } else {
-          contentArea.innerHTML = `<div style="color: #ef4444;">Lỗi dịch thuật: ${response ? response.error : 'Không phản hồi'}</div>`;
+          const safeErr = safeHtml(response ? response.error : 'Không phản hồi');
+          contentArea.innerHTML = `<div style="color: #ef4444;">Lỗi dịch thuật: ${safeErr}</div>`;
         }
       });
     }
