@@ -18,9 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
       editingNoteIndex = -1;
       if (noteTitleInput) noteTitleInput.value = '';
       if (noteInput) noteInput.value = '';
-      if (addNoteModalTitle) addNoteModalTitle.textContent = 'Thêm ghi chú';
+      if (addNoteModalTitle) addNoteModalTitle.textContent = window.i18n.t('notes_add_modal_title');
     } else {
-      if (addNoteModalTitle) addNoteModalTitle.textContent = 'Sửa ghi chú';
+      if (addNoteModalTitle) addNoteModalTitle.textContent = window.i18n.t('notes_edit_modal_title');
     }
     if (noteErrorMsg) noteErrorMsg.style.display = 'none';
     if (addNoteModal) addNoteModal.classList.add('active');
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pwd = passwordModalInput.value.trim();
     if (!pwd) {
       if (passwordErrorMsg) {
-        passwordErrorMsg.textContent = 'Mật mã không được để trống!';
+        passwordErrorMsg.textContent = window.i18n.t('notes_pass_empty_err');
         passwordErrorMsg.style.display = 'block';
       }
       return;
@@ -158,13 +158,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           } else {
             if (passwordErrorMsg) {
-              passwordErrorMsg.textContent = 'Lỗi giải mã dữ liệu!';
+              passwordErrorMsg.textContent = window.i18n.t('notes_pass_decrypt_err');
               passwordErrorMsg.style.display = 'block';
             }
           }
         } else {
           if (passwordErrorMsg) {
-            passwordErrorMsg.textContent = 'Mật mã không đúng!';
+            passwordErrorMsg.textContent = window.i18n.t('notes_pass_wrong_err');
             passwordErrorMsg.style.display = 'block';
           }
         }
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const text = noteInput ? noteInput.value.trim() : '';
     if (!text) {
       if (noteErrorMsg) {
-        noteErrorMsg.textContent = 'Vui lòng nhập nội dung ghi chú!';
+        noteErrorMsg.textContent = window.i18n.t('notes_content_empty_err');
         noteErrorMsg.style.display = 'block';
       }
       return;
