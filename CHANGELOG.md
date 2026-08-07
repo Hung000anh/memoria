@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 - **UI Improvements**: Removed default browser styling from icon buttons and refined hover effects for a more consistent experience.
-- **Internationalization (i18n)**: Fixed hardcoded Vietnamese strings in the Translation popup, Reminder notifications, and Notes lock modal to properly respect the user's language settings.
+- **Internationalization (i18n)**: Fixed hardcoded Vietnamese strings in the Translation popup, Reminder notifications, and Notes modal titles/validation errors to properly respect language settings.
 
 ### Changed
 - **Documentation**: Updated the main documentation and added a detailed changelog.
