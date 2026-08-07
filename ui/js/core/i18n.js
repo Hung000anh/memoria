@@ -71,6 +71,7 @@ const translations = {
     notes_title: "Ghi chú",
     notes_add_btn: "+ Thêm",
     notes_add_modal_title: "Thêm ghi chú",
+    notes_edit_modal_title: "Sửa ghi chú",
     notes_field_title: "Tiêu đề",
     notes_title_placeholder: "Tiêu đề (Tùy chọn)...",
     notes_field_content: "Nội dung",
@@ -81,6 +82,10 @@ const translations = {
     notes_view_title: "Nhập mật mã để Xem",
     notes_pass_placeholder: "Nhập mật mã...",
     notes_locked_msg: "Nội dung đã bị khóa, vui lòng mở khóa để xem...",
+    notes_pass_empty_err: "Mật mã không được để trống!",
+    notes_pass_decrypt_err: "Lỗi giải mã dữ liệu!",
+    notes_pass_wrong_err: "Mật mã không đúng!",
+    notes_content_empty_err: "Vui lòng nhập nội dung ghi chú!",
 
     // Reminders
     timer_title: "Hẹn giờ",
@@ -248,6 +253,7 @@ const translations = {
     notes_title: "Notes",
     notes_add_btn: "+ Add",
     notes_add_modal_title: "Add Note",
+    notes_edit_modal_title: "Edit Note",
     notes_field_title: "Title",
     notes_title_placeholder: "Title (Optional)...",
     notes_field_content: "Content",
@@ -258,6 +264,10 @@ const translations = {
     notes_view_title: "Enter passcode to View",
     notes_pass_placeholder: "Enter passcode...",
     notes_locked_msg: "Content is locked, please unlock to view...",
+    notes_pass_empty_err: "Passcode cannot be empty!",
+    notes_pass_decrypt_err: "Data decryption error!",
+    notes_pass_wrong_err: "Incorrect passcode!",
+    notes_content_empty_err: "Please enter note content!",
 
     // Reminders
     timer_title: "Timer",
@@ -425,6 +435,7 @@ const translations = {
     notes_title: "笔记",
     notes_add_btn: "+ 添加",
     notes_add_modal_title: "添加笔记",
+    notes_edit_modal_title: "编辑笔记",
     notes_field_title: "标题",
     notes_title_placeholder: "标题 (可选)...",
     notes_field_content: "内容",
@@ -435,6 +446,10 @@ const translations = {
     notes_view_title: "输入密码以查看",
     notes_pass_placeholder: "输入密码...",
     notes_locked_msg: "内容已锁定，请解锁以查看...",
+    notes_pass_empty_err: "密码不能为空！",
+    notes_pass_decrypt_err: "数据解密错误！",
+    notes_pass_wrong_err: "密码错误！",
+    notes_content_empty_err: "请输入笔记内容！",
 
     // Reminders
     timer_title: "定时器",
