@@ -5,17 +5,6 @@
 
 const OCR_OFFSCREEN_URL = chrome.runtime.getURL('offscreen/ocr.html');
 
-// Ánh xạ ngôn ngữ đích dịch thuật sang model tesseract tương ứng
-const TESSERACT_LANG_MAP = {
-  'vi': 'vie',
-  'en': 'eng',
-  'zh-CN': 'chi_sim',
-  'ja': 'jpn',
-  'ko': 'kor',
-  'fr': 'fra',
-  'de': 'deu'
-};
-
 // Đảm bảo offscreen document đang chạy
 async function ensureOffscreenDocument() {
   // Kiểm tra xem đã có offscreen doc chưa
@@ -74,9 +63,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         // 2. Đảm bảo offscreen document đang chạy
         await ensureOffscreenDocument();
 
-        // 3. Lấy ngôn ngữ cấu hình từ Translation Settings
-        const storageData = await new Promise(res => chrome.storage.local.get({ translateTargetLang: 'vi' }, res));
-        const tesseractLang = TESSERACT_LANG_MAP[storageData.translateTargetLang] || 'eng';
+        // 3. Lấy ngôn ngữ OCR cấu hình từ Settings
+        const storageData = await new Promise(res => chrome.storage.local.get({ ocrLanguage: 'eng' }, res));
+        const tesseractLang = storageData.ocrLanguage || 'eng';
 
         // 4. Gửi ảnh đến offscreen để crop + OCR
         console.log('[OCR-BG] Gửi ảnh đến offscreen OCR với lang:', tesseractLang);
