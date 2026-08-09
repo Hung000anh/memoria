@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get({
       translateTargetLang: 'vi',
       translateSecondaryTargetLang: 'en',
+      ocrLanguage: 'eng',
       allowCopy: false,
       allowCopyExcludeDomains: [],
       enableClipboardHistory: true,
@@ -139,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, (data) => {
       if (translateTargetLang) translateTargetLang.value = data.translateTargetLang;
       if (translateSecondaryTargetLang) translateSecondaryTargetLang.value = data.translateSecondaryTargetLang;
+      if (document.getElementById('ocrLanguage')) document.getElementById('ocrLanguage').value = data.ocrLanguage;
       if (allowCopyEnabled) allowCopyEnabled.checked = data.allowCopy;
       if (allowCopyExclude) {
         allowCopyExclude.value = data.allowCopyExcludeDomains.join('\n');
@@ -163,7 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
     saveTranslateSettingsBtn.addEventListener('click', () => {
       const lang = translateTargetLang.value;
       const secLang = translateSecondaryTargetLang ? translateSecondaryTargetLang.value : 'en';
-      chrome.storage.local.set({ translateTargetLang: lang, translateSecondaryTargetLang: secLang }, () => {
+      const ocrLang = document.getElementById('ocrLanguage') ? document.getElementById('ocrLanguage').value : 'eng';
+      chrome.storage.local.set({ translateTargetLang: lang, translateSecondaryTargetLang: secLang, ocrLanguage: ocrLang }, () => {
         translateSaveMsg.style.display = 'block';
         setTimeout(() => translateSaveMsg.style.display = 'none', 3000);
       });
@@ -339,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadKeys();
         loadNavSettings();
       }
-      if (changes.translateTargetLang || changes.translateSecondaryTargetLang) {
+      if (changes.translateTargetLang || changes.translateSecondaryTargetLang || changes.ocrLanguage) {
         loadTranslateSettings();
       }
     }
