@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     functionDeclarations: [
       {
         name: "create_note",
-        description: "Tạo một ghi chú mới.",
+        description: "Tạo một ghi chú mới. Không dùng công cụ này khi người dùng muốn sửa, đổi tên, xóa tiêu đề hoặc cập nhật một ghi chú đã có.",
         parameters: {
           type: "OBJECT",
           properties: {
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       {
         name: "edit_note",
-        description: "Sửa nội dung hoặc tiêu đề của một ghi chú dựa trên ID.",
+        description: "Sửa nội dung hoặc tiêu đề của một ghi chú dựa trên ID. Chỉ gửi các trường cần thay đổi; dùng title rỗng để xóa tiêu đề và giữ nguyên nội dung nếu không gửi content.",
         parameters: {
           type: "OBJECT",
           properties: {
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: { type: "STRING", description: "Tiêu đề mới" },
             content: { type: "STRING", description: "Nội dung mới" }
           },
-          required: ["id", "content"]
+          required: ["id"]
         }
       },
       {
@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
               color: call.args.color || '#fecaca',
               date: new Date().toISOString()
             };
-            data.notes.push(newNote);
+            data.notes.unshift(newNote);
             chrome.storage.local.set({ notes: data.notes }, () => {
               window.dispatchEvent(new Event('app_data_changed'));
               resolve({ result: "Success" });
@@ -381,6 +381,8 @@ DỮ LIỆU HIỆN TẠI CỦA NGƯỜI DÙNG:
 
 MỤC TIÊU CỦA BẠN:
 - Hãy gọi tool nếu người dùng yêu cầu thao tác (thêm, sửa, xóa) dữ liệu hoặc tra cứu thời tiết thành phố khác.
+- Khi người dùng muốn sửa, đổi tên, bỏ/xóa tiêu đề hoặc thay đổi nội dung của ghi chú đã có hay vừa tạo, luôn dùng edit_note thay vì create_note.
+- Với yêu cầu nối tiếp dùng các từ như "nó", "ghi chú đó" hoặc "ghi chú vừa tạo", hãy áp dụng cho ghi chú được nhắc đến gần nhất. Chỉ thay đổi trường người dùng yêu cầu; dùng title rỗng khi họ muốn bỏ tiêu đề.
 - Nếu người dùng hỏi về thông tin đã có, hãy trả lời dựa trên dữ liệu hiện tại ở trên.
 - Trả lời ngắn gọn, thân thiện bằng ngôn ngữ: ${window.i18n ? window.i18n.t('lang_' + window.i18n.currentLang) : 'Tiếng Việt'}.
       `;

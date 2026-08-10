@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const noteTitleInput = document.getElementById('noteTitleInput');
   const noteInput = document.getElementById('noteInput');
+  const insertNoteCheckboxBtn = document.getElementById('insertNoteCheckboxBtn');
   const addNoteBtn = document.getElementById('addNoteBtn');
   const noteList = document.getElementById('noteList');
 
@@ -36,12 +37,61 @@ document.addEventListener('DOMContentLoaded', () => {
   if (openAddNoteModalBtn) openAddNoteModalBtn.addEventListener('click', () => openNoteModal(false));
   if (cancelNoteBtn) cancelNoteBtn.addEventListener('click', closeNoteModal);
 
+  function resizeNoteInput() {
+    if (!noteInput) return;
+    noteInput.style.height = 'auto';
+    noteInput.style.height = (noteInput.scrollHeight + 2) + 'px';
+  }
+
+  function insertMarkdownCheckbox() {
+    if (!noteInput) return;
+
+    const value = noteInput.value;
+    const selectionStart = noteInput.selectionStart;
+    const selectionEnd = noteInput.selectionEnd;
+    const hasSelection = selectionStart !== selectionEnd;
+    const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
+    const selectionEndsAfterNewline = hasSelection && value[selectionEnd - 1] === '\n';
+    let lineEnd = selectionEndsAfterNewline ? selectionEnd - 1 : value.indexOf('\n', selectionEnd);
+    if (lineEnd < 0) lineEnd = value.length;
+
+    const selectedLines = value.slice(lineStart, lineEnd);
+    const taskPattern = /^(\s*(?:>\s*)*(?:(?:[-+*])|(?:\d+[.)]))\s+\[[ xX]\]\s+)/;
+
+    if (hasSelection) {
+      const updatedLines = selectedLines.split('\n').map((line) => {
+        if (!line.trim() || taskPattern.test(line)) return line;
+        const prefix = line.match(/^(\s*(?:>\s*)*)/)[0];
+        return prefix + '- [ ] ' + line.slice(prefix.length);
+      }).join('\n');
+
+      noteInput.setRangeText(updatedLines, lineStart, lineEnd, 'select');
+    } else {
+      const currentLine = selectedLines;
+      const existingTask = currentLine.match(taskPattern);
+
+      if (!existingTask) {
+        const prefix = currentLine.match(/^(\s*(?:>\s*)*)/)[0];
+        const insertionPoint = lineStart + prefix.length;
+        const marker = '- [ ] ';
+        const caret = selectionStart <= insertionPoint
+          ? insertionPoint + marker.length
+          : selectionStart + marker.length;
+
+        noteInput.setRangeText(marker, insertionPoint, insertionPoint, 'preserve');
+        noteInput.setSelectionRange(caret, caret);
+      }
+    }
+
+    noteInput.focus();
+    noteInput.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  if (insertNoteCheckboxBtn) insertNoteCheckboxBtn.addEventListener('click', insertMarkdownCheckbox);
+
   // Tự động co giãn ô nhập nội dung
   if (noteInput) {
-    noteInput.addEventListener('input', function () {
-      this.style.height = 'auto';
-      this.style.height = (this.scrollHeight + 2) + 'px'; // +2px bù cho border
-    });
+    noteInput.addEventListener('input', resizeNoteInput);
   }
 
   // Nhấn Enter ở Tiêu đề sẽ tự động nhảy xuống Nội dung
@@ -51,6 +101,111 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault(); // Ngăn submit form (nếu có)
         if (noteInput) noteInput.focus();
       }
+    });
+  }
+
+  function findMarkdownTaskMarkers(text) {
+    const markers = [];
+    let activeFence = null;
+
+    for (const lineMatch of text.matchAll(/^.*$/gm)) {
+      const line = lineMatch[0];
+      const fenceMatch = line.match(/^\s*(?:>\s*)*(`{3,}|~{3,})/);
+
+      if (activeFence) {
+        const closingFenceMatch = line.match(/^\s*(?:>\s*)*(`{3,}|~{3,})\s*$/);
+        if (closingFenceMatch) {
+          const closingFence = closingFenceMatch[1];
+          if (closingFence[0] === activeFence.character && closingFence.length >= activeFence.length) {
+            activeFence = null;
+          }
+        }
+        continue;
+      }
+
+      if (fenceMatch) {
+        const fence = fenceMatch[1];
+        activeFence = { character: fence[0], length: fence.length };
+        continue;
+      }
+
+      const taskMatch = line.match(/^(\s*(?:>\s*)*(?:(?:[-+*])|(?:\d+[.)]))\s+\[)([ xX])(\])/);
+      if (!taskMatch) continue;
+
+      markers.push({
+        stateOffset: lineMatch.index + taskMatch[1].length,
+        checked: taskMatch[2].toLowerCase() === 'x'
+      });
+    }
+
+    return markers;
+  }
+
+  function updateMarkdownTask(text, taskIndex, checked) {
+    const marker = findMarkdownTaskMarkers(text)[taskIndex];
+    if (!marker) return null;
+
+    return text.slice(0, marker.stateOffset) + (checked ? 'x' : ' ') + text.slice(marker.stateOffset + 1);
+  }
+
+  function saveTaskState(noteReference, taskIndex, checked, callback) {
+    chrome.storage.local.get({ notes: [] }, (data) => {
+      let noteIndex = -1;
+
+      if (noteReference.id !== null && noteReference.id !== undefined) {
+        noteIndex = data.notes.findIndex((note) => String(note.id) === String(noteReference.id));
+      } else if (Number.isInteger(noteReference.index) && data.notes[noteReference.index]) {
+        noteIndex = noteReference.index;
+      }
+
+      const note = data.notes[noteIndex];
+      if (!note || note.locked) {
+        callback(false);
+        return;
+      }
+
+      const originalText = note.text || note.content || '';
+      const updatedText = updateMarkdownTask(originalText, taskIndex, checked);
+      if (updatedText === null) {
+        callback(false);
+        return;
+      }
+
+      note.text = updatedText;
+      if (Object.prototype.hasOwnProperty.call(note, 'content')) note.content = updatedText;
+
+      chrome.storage.local.set({ notes: data.notes }, () => callback(!chrome.runtime.lastError));
+    });
+  }
+
+  function prepareTaskCheckboxes(container, noteReference, interactive) {
+    if (!container) return;
+
+    const taskCheckboxes = container.querySelectorAll('input[type="checkbox"][disabled]');
+    taskCheckboxes.forEach((checkbox, taskIndex) => {
+      checkbox.classList.add('markdown-task-checkbox');
+      const listItem = checkbox.closest('li');
+      if (listItem) {
+        listItem.classList.add('markdown-task-item');
+        const taskList = listItem.parentElement;
+        if (taskList && (taskList.tagName === 'UL' || taskList.tagName === 'OL')) {
+          taskList.classList.add('markdown-task-list');
+        }
+      }
+
+      if (!interactive) return;
+
+      checkbox.disabled = false;
+      checkbox.addEventListener('click', (event) => event.stopPropagation());
+      checkbox.addEventListener('change', () => {
+        const requestedState = checkbox.checked;
+        checkbox.disabled = true;
+
+        saveTaskState(noteReference, taskIndex, requestedState, (saved) => {
+          if (!saved) checkbox.checked = !requestedState;
+          checkbox.disabled = false;
+        });
+      });
     });
   }
 
@@ -153,7 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
               }
               if (viewNoteTime) viewNoteTime.innerHTML = timeStr;
-              if (viewNoteText) viewNoteText.innerHTML = renderMarkdown(decryptedText);
+              if (viewNoteText) {
+                viewNoteText.innerHTML = renderMarkdown(decryptedText);
+                prepareTaskCheckboxes(viewNoteText, { id: note.id, index: pendingNoteIndex }, false);
+              }
               if (viewNoteModal) viewNoteModal.classList.add('active');
             }
           } else {
@@ -235,6 +393,14 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
         noteList.appendChild(li);
+
+        if (!isLocked) {
+          prepareTaskCheckboxes(
+            li.querySelector('.note-text-display'),
+            { id: note.id, index },
+            true
+          );
+        }
       });
 
       // Xử lý sự kiện click để xem chi tiết ghi chú trong Modal
@@ -260,7 +426,10 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           if (viewNoteTime) viewNoteTime.innerHTML = timeStr;
 
-          if (viewNoteText) viewNoteText.innerHTML = renderMarkdown(note.text || note.content || '');
+          if (viewNoteText) {
+            viewNoteText.innerHTML = renderMarkdown(note.text || note.content || '');
+            prepareTaskCheckboxes(viewNoteText, { id: note.id, index: Number(idx) }, true);
+          }
           if (viewNoteModal) viewNoteModal.classList.add('active');
         });
       });
@@ -284,10 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
           openNoteModal(true);
           
           // Tính toán lại chiều cao sau khi Modal đã hiển thị (display: flex)
-          if (noteInput) {
-            noteInput.style.height = 'auto';
-            noteInput.style.height = (noteInput.scrollHeight + 2) + 'px';
-          }
+          resizeNoteInput();
         });
       });
 

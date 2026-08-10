@@ -341,6 +341,9 @@
       </div>
       <div class="input-group" style="margin-bottom: 16px;">
         <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;"><span data-i18n="notes_field_content">Nội dung</span> <span style="color:red">*</span></label>
+        <div class="note-markdown-toolbar">
+          <button type="button" id="insertNoteCheckboxBtn" class="btn-markdown-tool" data-i18n="notes_insert_checkbox" data-i18n-title="notes_insert_checkbox" title="Thêm ô chọn">Thêm ô chọn</button>
+        </div>
         <textarea id="noteInput" placeholder="Nội dung ghi chú (Hỗ trợ Markdown)..." data-i18n-placeholder="notes_content_placeholder" rows="6" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-color); font-family: inherit; resize: none;"></textarea>
       </div>
       <p id="noteErrorMsg" style="color: #ef4444; font-size: 12px; margin-bottom: 12px; display: none;"></p>

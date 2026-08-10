@@ -489,6 +489,58 @@ h2 {
   margin-bottom: 8px;
 }
 
+.note-markdown-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.btn-markdown-tool {
+  padding: 5px 9px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.btn-markdown-tool:hover,
+.btn-markdown-tool:focus-visible {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--nav-hover-bg);
+  outline: none;
+}
+
+.markdown-body li.markdown-task-item {
+  list-style: none;
+}
+
+.markdown-body .markdown-task-list {
+  padding-left: 4px;
+}
+
+.markdown-body .markdown-task-list .markdown-task-list {
+  padding-left: 20px;
+}
+
+.markdown-body input.markdown-task-checkbox {
+  width: 15px;
+  height: 15px;
+  margin: 0 6px 0 0;
+  vertical-align: -2px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.markdown-body input.markdown-task-checkbox:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
 .btn-delete,
 .btn-copy,
 .btn-edit,
