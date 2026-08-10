@@ -4,6 +4,16 @@ All notable changes to the **Memoria** project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Multimodal AI Chat Attachments**: Added image input support for the Memoria AI chatbot, including clipboard paste, local file selection, image preview, attachment removal, and image-only prompts.
+- **Persistent Image Context**: Preserved attached images in chat history and restored them when reopening the side panel.
+
+### Changed
+- **Gemini Request Handling**: Extended chat message serialization to forward image attachments using Gemini `inlineData` parts while preserving existing text and function-calling behavior.
+- **Attachment Validation**: Added client-side image type validation and a 4 MB attachment limit to keep requests and local chat storage within safe bounds.
+
 ## [1.2.0] - 2026-08-11
 
 ### Added

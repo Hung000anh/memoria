@@ -87,7 +87,7 @@ class GeminiService {
       let role = msg.role === 'ai' ? 'model' : msg.role;
       const sanitized = { role: role };
       if (msg.parts) {
-        sanitized.parts = msg.parts;
+        sanitized.parts = msg.parts.filter(part => part && (part.text || part.inlineData || part.functionCall || part.functionResponse));
       } else if (msg.text) {
         sanitized.parts = [{ text: msg.text }];
       } else {
