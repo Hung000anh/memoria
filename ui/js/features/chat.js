@@ -3,6 +3,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatInput = document.getElementById('chatInput');
   const sendChatBtn = document.getElementById('sendChatBtn');
   const chatHistory = document.getElementById('chatHistory');
+  const chatImageInput = document.getElementById('chatImageInput');
+  const attachChatImageBtn = document.getElementById('attachChatImageBtn');
+  const chatImagePreview = document.getElementById('chatImagePreview');
+  const chatImagePreviewImg = document.getElementById('chatImagePreviewImg');
+  const removeChatImageBtn = document.getElementById('removeChatImageBtn');
+  const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+  let pendingImage = null;
 
   function scrollChatToBottom() {
     if (!chatHistory) return;
@@ -23,6 +30,55 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let chatHistoryData = [];
+
+  function renderImage(container, image) {
+    if (!image || !image.data || !image.mimeType) return;
+    const img = document.createElement('img');
+    img.src = `data:${image.mimeType};base64,${image.data}`;
+    img.alt = 'Ảnh đính kèm';
+    img.className = 'chat-message-image';
+    container.appendChild(img);
+  }
+
+  function setPendingImage(file) {
+    if (!file || !file.type.startsWith('image/')) return alert('Vui lòng chọn một tệp hình ảnh.');
+    if (file.size > MAX_IMAGE_BYTES) return alert('Ảnh vượt quá giới hạn 4 MB.');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || '');
+      const commaIndex = dataUrl.indexOf(',');
+      if (commaIndex < 0) return;
+      pendingImage = { mimeType: file.type, data: dataUrl.slice(commaIndex + 1) };
+      chatImagePreviewImg.src = dataUrl;
+      chatImagePreview.hidden = false;
+    };
+    reader.onerror = () => alert('Không thể đọc ảnh này.');
+    reader.readAsDataURL(file);
+  }
+
+  function clearPendingImage() {
+    pendingImage = null;
+    if (chatImagePreview) chatImagePreview.hidden = true;
+    if (chatImagePreviewImg) chatImagePreviewImg.removeAttribute('src');
+    if (chatImageInput) chatImageInput.value = '';
+  }
+
+  if (attachChatImageBtn && chatImageInput) {
+    attachChatImageBtn.addEventListener('click', () => chatImageInput.click());
+    chatImageInput.addEventListener('change', () => {
+      if (chatImageInput.files && chatImageInput.files[0]) setPendingImage(chatImageInput.files[0]);
+    });
+  }
+  if (removeChatImageBtn) removeChatImageBtn.addEventListener('click', clearPendingImage);
+  if (chatInput) chatInput.addEventListener('paste', (event) => {
+    const items = Array.from(event.clipboardData?.items || []);
+    const imageItem = items.find(item => item.type.startsWith('image/'));
+    if (imageItem) {
+      event.preventDefault();
+      const file = imageItem.getAsFile();
+      if (file) setPendingImage(file);
+    }
+  });
 
   function ensureChatTitle() {
     if (!chatHistory) return;
@@ -62,19 +118,22 @@ document.addEventListener('DOMContentLoaded', () => {
            const roleStr = msg.role === 'user' ? 'user-msg' : 'ai-msg';
            const div = document.createElement('div');
            div.className = `msg ${roleStr}`;
-           const msgText = msg.text || (msg.parts && msg.parts[0] ? msg.parts[0].text : '');
+           const messageImage = msg.image || (msg.parts && msg.parts.find(p => p.inlineData)?.inlineData);
+           const textPart = msg.parts && msg.parts.find(p => p.text);
+           const msgText = msg.text || (textPart ? textPart.text : '');
            
            // Nếu không có text gì cả (ví dụ tin rác), bỏ qua luôn
-           if (!msgText || msgText.trim() === '') return;
+           if ((!msgText || msgText.trim() === '') && !messageImage) return;
 
            const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
            const timeHtml = timeStr ? `<div style="font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right;">${timeStr}</div>` : '';
 
-           if (window.utils && window.utils.renderMarkdown) {
+           if (window.utils && window.utils.renderMarkdown && msgText) {
              div.innerHTML = window.utils.renderMarkdown(msgText) + timeHtml;
-           } else {
+           } else if (msgText) {
              div.innerHTML = msgText.replace(/\n/g, '<br>') + timeHtml;
            }
+           if (messageImage) renderImage(div, messageImage);
            chatHistory.appendChild(div);
          });
          if (typeof scrollChatToBottom === 'function') scrollChatToBottom();
@@ -132,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function addMessageToUI(text, isUser, timestamp) {
+  function addMessageToUI(text, isUser, timestamp, image = null) {
     if (!chatHistory) return;
     const div = document.createElement('div');
     div.className = `msg ${isUser ? 'user-msg' : 'ai-msg'}`;
@@ -140,11 +199,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
     const timeHtml = timeStr ? `<div style="font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right;">${timeStr}</div>` : '';
 
-    if (window.utils && window.utils.renderMarkdown) {
+    if (window.utils && window.utils.renderMarkdown && text) {
       div.innerHTML = window.utils.renderMarkdown(text) + timeHtml;
-    } else {
+    } else if (text) {
       div.innerHTML = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') + timeHtml;
     }
+    if (image) renderImage(div, image);
     chatHistory.appendChild(div);
     scrollChatToBottom();
     saveChatState();
@@ -323,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  async function processChatRequest(userText, ts) {
+  async function processChatRequest(userText, ts, image = null) {
     // Typing indicator
     const typingDiv = document.createElement('div');
     typingDiv.className = 'msg ai-msg';
@@ -391,7 +451,10 @@ MỤC TIÊU CỦA BẠN:
         if (!window.gemini) throw new Error("Tính năng AI chưa được cấu hình.");
 
         // Thêm tin nhắn user vào mảng
-        chatHistoryData.push({ role: "user", parts: [{ text: userText }], timestamp: ts });
+        const userParts = [];
+        if (userText) userParts.push({ text: userText });
+        if (image) userParts.push({ inlineData: image });
+        chatHistoryData.push({ role: "user", parts: userParts, text: userText, timestamp: ts });
 
         let aiResponse = await window.gemini.chat(chatHistoryData, systemInstruction, toolsDef);
         
@@ -456,14 +519,16 @@ MỤC TIÊU CỦA BẠN:
   async function handleChat() {
     if (!chatInput || !chatHistory) return;
     const text = chatInput.value.trim();
-    if (!text) return;
+    if (!text && !pendingImage) return;
 
     const ts = Date.now();
-    addMessageToUI(text, true, ts);
+    const image = pendingImage;
+    addMessageToUI(text, true, ts, image);
     chatInput.value = '';
     chatInput.style.height = 'auto';
+    clearPendingImage();
 
-    processChatRequest(text, ts);
+    processChatRequest(text, ts, image);
   }
 
   if (sendChatBtn) sendChatBtn.addEventListener('click', handleChat);
