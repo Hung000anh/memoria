@@ -135,9 +135,14 @@
     <!-- Main Content -->
     <main class="main-content">
       <!-- Chat Pane -->
-      <div id="chat" class="pane chat-pane active">
+      <div id="chat" class="pane chat-pane active" style="position: relative;">
+        <button id="clearChatBtn" class="btn-clear-floating" title="Xóa tất cả lịch sử chat" data-i18n-title="chat_clear_btn_title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
         <div id="chatHistory" class="chat-history">
-          <h2 style="margin-bottom: 12px; flex-shrink: 0; margin-top: 0;" data-i18n="chat_title">Memoria AI</h2>
           <div class="msg ai-msg" data-i18n="chat_welcome">Chào bạn! Mình là AI của Memoria, mình có thể trợ giúp và giải đáp câu hỏi cho bạn.</div>
         </div>
         <div class="chat-input-area">

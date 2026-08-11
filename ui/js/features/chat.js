@@ -80,19 +80,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  function ensureChatTitle() {
-    if (!chatHistory) return;
-    // Đảm bảo tiêu đề luôn ở đầu vùng chat
-    const existing = chatHistory.querySelector('.chat-title-header');
-    if (!existing) {
-      const h2 = document.createElement('h2');
-      h2.className = 'chat-title-header';
-      h2.textContent = 'Memoria AI';
-      h2.style.marginBottom = '12px';
-      h2.style.marginTop = '0';
-      chatHistory.insertBefore(h2, chatHistory.firstChild);
+  function bindClearChatEvent() {
+    const clearBtn = document.getElementById('clearChatBtn');
+    if (clearBtn && !clearBtn.dataset.bound) {
+      clearBtn.dataset.bound = 'true';
+      clearBtn.addEventListener('click', clearChatHistory);
     }
   }
+
+  function clearChatHistory() {
+    const confirmMsg = window.i18n ? window.i18n.t('chat_confirm_clear') : 'Bạn có chắc chắn muốn xóa toàn bộ lịch sử chat không?';
+    if (!confirm(confirmMsg)) return;
+
+    chatHistoryData = [];
+    clearPendingImage();
+
+    if (chatHistory) {
+      chatHistory.innerHTML = '';
+
+      const welcomeDiv = document.createElement('div');
+      welcomeDiv.className = 'msg ai-msg';
+      welcomeDiv.setAttribute('data-i18n', 'chat_welcome');
+      welcomeDiv.textContent = window.i18n ? window.i18n.t('chat_welcome') : 'Chào bạn! Mình là AI của Memoria, mình có thể trợ giúp và giải đáp câu hỏi cho bạn.';
+      chatHistory.appendChild(welcomeDiv);
+    }
+
+    chrome.storage.local.set({
+      chatHistoryData: [],
+      chatHistoryHTML: chatHistory ? chatHistory.innerHTML : '',
+      chatLastUpdated: Date.now()
+    });
+  }
+
+  bindClearChatEvent();
 
   // Load chat state
   chrome.storage.local.get({ chatHistoryData: [], chatHistoryHTML: '', chatLastUpdated: 0 }, (data) => {
@@ -140,8 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
          else chatHistory.scrollTop = chatHistory.scrollHeight;
       }
     }
-    ensureChatTitle();
-    
+    bindClearChatEvent();
+
     // Clear badge khi khởi động nếu đang ở tab chat
     const chatPaneInit = document.getElementById('chat');
     if (chatPaneInit && chatPaneInit.classList.contains('active')) {
