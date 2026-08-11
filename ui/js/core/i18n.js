@@ -48,6 +48,9 @@ const translations = {
     chat_executing: "Đang thực thi:",
     chat_processing_done: "Đã thực hiện xong yêu cầu của bạn!",
     chat_error: "Lỗi",
+    chat_clear_btn: "Xóa lịch sử",
+    chat_clear_btn_title: "Xóa tất cả lịch sử chat",
+    chat_confirm_clear: "Bạn có chắc chắn muốn xóa toàn bộ lịch sử chat không?",
 
     // Translate
     tsl_title: "Dịch thuật",
@@ -232,6 +235,9 @@ const translations = {
     chat_executing: "Executing:",
     chat_processing_done: "Your request has been completed!",
     chat_error: "Error",
+    chat_clear_btn: "Clear History",
+    chat_clear_btn_title: "Clear all chat history",
+    chat_confirm_clear: "Are you sure you want to clear all chat history?",
 
     // Translate
     tsl_title: "Translation",
@@ -416,6 +422,9 @@ const translations = {
     chat_executing: "执行中:",
     chat_processing_done: "已完成您的请求！",
     chat_error: "错误",
+    chat_clear_btn: "清空历史",
+    chat_clear_btn_title: "清空所有聊天记录",
+    chat_confirm_clear: "确定要清空所有聊天记录吗？",
 
     // Translate
     tsl_title: "翻译",

@@ -457,8 +457,8 @@ h2 {
 .markdown-body pre code {
   background-color: transparent;
   padding: 0;
-  word-break: normal;
-  white-space: pre;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .markdown-body h1,
@@ -593,6 +593,34 @@ h2 {
   padding: 0 !important;
 }
 
+.btn-clear-floating {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.btn-clear-floating:hover {
+  opacity: 1;
+  color: #ef4444;
+  border-color: #ef4444;
+  background: var(--bg-color);
+  transform: scale(1.05);
+}
+
 .chat-history {
   flex: 1;
   overflow-y: auto;
@@ -610,6 +638,18 @@ h2 {
   font-size: 14px;
   word-break: break-word;
   overflow-wrap: anywhere;
+}
+
+.msg pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msg code {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .chat-message-image {

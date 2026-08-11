@@ -6,13 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-11
+
 ### Added
+- **AI Chat Clear History**: Added a compact floating action button to clear chat history with user confirmation.
 - **Multimodal AI Chat Attachments**: Added image input support for the Memoria AI chatbot, including clipboard paste, local file selection, image preview, attachment removal, and image-only prompts.
 - **Persistent Image Context**: Preserved attached images in chat history and restored them when reopening the side panel.
 
 ### Changed
 - **Gemini Request Handling**: Extended chat message serialization to forward image attachments using Gemini `inlineData` parts while preserving existing text and function-calling behavior.
 - **Attachment Validation**: Added client-side image type validation and a 4 MB attachment limit to keep requests and local chat storage within safe bounds.
+
+### Fixed
+- **AI Chat Code & Text Wrapping**: Fixed text overflowing and code block wrapping issues in the side panel AI chat view.
 
 ## [1.2.0] - 2026-08-11
 
