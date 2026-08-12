@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-12
+
+### Added
+- **Background Google Search Tool**: Added an internal `search_google` tool that lets the chatbot generate search keywords, collect up to five Google results in inactive tabs, and extract bounded page text without using Gemini Search grounding or its separate billing quota.
+- **Direct Web Page Reading**: Added a `read_web_page` tool for analyzing user-provided URLs directly, avoiding an unnecessary Google search round trip.
+
+### Changed
+- **Web Content Retrieval**: Added background-tab orchestration with page-load timeouts, per-page error isolation, automatic temporary-tab cleanup, and a 12,000-character limit per page.
+- **AI Web Analysis**: Added safeguards instructing the chatbot to treat retrieved web content as untrusted data rather than executable instructions.
+
+### Fixed
+- **Tool Response Continuation**: Fixed the chat flow so function responses use the expected Gemini conversation format and the assistant continues through follow-up tool calls before presenting the final analysis.
+- **False Completion Messages**: Removed the misleading success fallback when Gemini has not yet returned an analysis after a tool execution.
+
 ## [1.3.0] - 2026-08-11
 
 ### Added
