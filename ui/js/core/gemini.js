@@ -61,7 +61,6 @@ class GeminiService {
       } catch (error) {
         console.error("Gemini API Error:", error);
         const errMsg = error.message.toLowerCase();
-        
         if (errMsg.includes("suspend") || errMsg.includes("suspension") || errMsg.includes("403") || errMsg.includes("quota") || errMsg.includes("429")) {
           activeKeyObj.status = 'DEAD';
           await this.saveKeys();
@@ -107,6 +106,7 @@ class GeminiService {
     if (tools) {
       body.tools = tools;
     }
+
 
     const res = await fetch(url, {
       method: 'POST',
