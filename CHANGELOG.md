@@ -4,12 +4,18 @@ All notable changes to the **Memoria** project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.5.0] - 2026-08-14
 
 ### Changed
 - **OCR Engine**: Replaced Tesseract.js with the offline PaddleOCR PP-OCRv6-tiny browser pipeline, bundling local ONNX Runtime WASM and detection/recognition models.
 - **MV3 CSP**: Runs the OpenCV/PaddleOCR runtime inside a sandboxed offscreen iframe so the extension page keeps its strict CSP.
-- **Full-page Translation**: Added a context-menu action that translates visible page text in place and provides an undo action; image/OCR text is intentionally deferred.
+- **Full-page Translation**: Added separate HTML and image/OCR processing branches with independent feature flags and a shared undo action.
+- **Translation Preprocessing**: Added optional LanguageTool spelling correction before Google Translate, with graceful fallback when the public API is unavailable.
+- **Internationalization**: Localized the new context-menu labels and automatic webpage-analysis prompts for Vietnamese, English, and Chinese.
+
+### Added
+- **Webpage Summary and Analysis**: Added separate context-menu actions that open the Chat side panel, read the current URL, and request either a summary or a detailed analysis.
+- **OCR Line Joining**: Joins OCR line-break hyphenation such as `TRIUMP` + `-HANT` into `TRIUMPHANT` before translation.
 
 ## [1.4.0] - 2026-08-12
 
