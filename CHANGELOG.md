@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+- **OCR Engine**: Replaced Tesseract.js with the offline PaddleOCR PP-OCRv6-tiny browser pipeline, bundling local ONNX Runtime WASM and detection/recognition models.
+- **MV3 CSP**: Runs the OpenCV/PaddleOCR runtime inside a sandboxed offscreen iframe so the extension page keeps its strict CSP.
+- **Full-page Translation**: Added a context-menu action that translates visible page text in place and provides an undo action; image/OCR text is intentionally deferred.
+
 ## [1.4.0] - 2026-08-12
 
 ### Added

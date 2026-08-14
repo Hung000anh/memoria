@@ -20,6 +20,33 @@ try {
 
 console.log("Memoria background script loaded.");
 
+const FULL_PAGE_TRANSLATE_MENU_ID = 'memoria-translate-full-page';
+
+function registerTranslationContextMenu() {
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: FULL_PAGE_TRANSLATE_MENU_ID,
+      title: 'Dịch toàn bộ trang web',
+      contexts: ['page']
+    }, () => {
+      if (chrome.runtime.lastError) {
+        console.warn('[Memoria] Không thể tạo context menu:', chrome.runtime.lastError.message);
+      }
+    });
+  });
+}
+
+chrome.runtime.onInstalled.addListener(registerTranslationContextMenu);
+chrome.runtime.onStartup.addListener(registerTranslationContextMenu);
+registerTranslationContextMenu();
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId !== FULL_PAGE_TRANSLATE_MENU_ID || !tab?.id) return;
+  chrome.tabs.sendMessage(tab.id, { action: 'toggle_full_page_translation' }).catch(() => {
+    console.warn('[Memoria] Trang hiện tại không hỗ trợ dịch toàn trang.');
+  });
+});
+
 // Search Google in inactive temporary tabs, then return a small, bounded
 // snapshot of the most relevant pages to the chat panel.
 function waitForTabComplete(tabId, timeoutMs = 15000) {

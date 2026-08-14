@@ -29,7 +29,8 @@
   
   ![Web Translation](images/translateweb.gif)
 
-- **屏幕 OCR 翻译**: 按下 `Alt + S` 截取屏幕特定区域，从图像中提取文本（由 Tesseract.js Offscreen 提供支持）并立即翻译。
+- **屏幕 OCR 翻译**: 按下 `Alt + S` 截取屏幕特定区域，从图像中提取文本（由 Offscreen 中离线运行的 PaddleOCR PP-OCRv6-tiny 提供支持）并立即翻译。
+- **整页翻译**：在网页上点击右键并选择**翻译整个网页**，即可直接替换可见文本，并支持撤销。图片中的文字暂不处理。
   
   ![OCR Translation](images/ocrweb.gif)
 
@@ -104,7 +105,7 @@ memoria/
 │   └── services/            # 后台任务 (闹钟、翻译 API)
 ├── content/
 │   └── modules/             # 注入的脚本 (剪贴板、翻译、OCR、允许复制)
-├── offscreen/               # 用于 OCR 处理的离屏文档 (Tesseract.js)
+├── offscreen/               # 使用 PaddleOCR 离线处理 OCR 的离屏文档
 ├── ui/
 │   ├── sidepanel.html       # 主侧边栏 UI
 │   ├── settings.html        # 设置 / 选项页面

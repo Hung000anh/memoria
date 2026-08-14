@@ -162,7 +162,6 @@ const translations = {
     stg_tsl_help: "Chọn ngôn ngữ đích mà bạn muốn dịch sang khi bôi đen văn bản hoặc quét ảnh OCR.",
     stg_tsl_target_label: "Ngôn ngữ đích:",
     stg_tsl_sec_target_label: "Ngôn ngữ đích phụ (nếu gốc trùng đích):",
-    stg_ocr_lang_label: "Ngôn ngữ OCR (Văn bản trong ảnh):",
     stg_tsl_save_btn: "Lưu Cài đặt Dịch",
 
     stg_privacy_title: "Cài đặt Quyền riêng tư & Clipboard",
@@ -349,7 +348,6 @@ const translations = {
     stg_tsl_help: "Select the target language to translate into when selecting text or performing OCR scan.",
     stg_tsl_target_label: "Target Language:",
     stg_tsl_sec_target_label: "Secondary Target Language (if source matches target):",
-    stg_ocr_lang_label: "OCR Language (Text in image):",
     stg_tsl_save_btn: "Save Translation Settings",
 
     stg_privacy_title: "Privacy & Clipboard Settings",
@@ -536,7 +534,6 @@ const translations = {
     stg_tsl_help: "选择划词翻译或 OCR 截图翻译时的目标语言。",
     stg_tsl_target_label: "目标语言：",
     stg_tsl_sec_target_label: "备用目标语言 (原语言与目标语言相同时)：",
-    stg_ocr_lang_label: "OCR 语言 (图片中的文字):",
     stg_tsl_save_btn: "保存翻译设置",
 
     stg_copy_title: "解除复制限制设置 (Allow Copy)",
