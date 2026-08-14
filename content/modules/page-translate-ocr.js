@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const MAX_UNIQUE_TEXTS = 500;
+  const MAX_UNIQUE_TEXTS = 1000;
   const MAX_OCR_TEXTS = 300;
   const OCR_MIN_SCORE = 0.7;
   const MAX_IMAGES = 50;
@@ -18,6 +18,22 @@
   let pageTranslation = null;
   let toolbar = null;
   let translationRunId = 0;
+
+  // Dọn bản dịch khi người dùng bấm sang route khác trong SPA.
+  // Link chỉ đổi hash trong cùng trang (thường do cuộn reader) sẽ được bỏ qua.
+  document.addEventListener('click', event => {
+    const anchor = event.target.closest?.('a[href]');
+    if (!anchor || event.defaultPrevented || anchor.target === '_blank') return;
+    let destination;
+    try {
+      destination = new URL(anchor.href, location.href);
+    } catch (_) {
+      return;
+    }
+    const currentRoute = `${location.origin}${location.pathname}${location.search}`;
+    const destinationRoute = `${destination.origin}${destination.pathname}${destination.search}`;
+    if (destinationRoute !== currentRoute) undoPageTranslation();
+  }, true);
 
   chrome.runtime.onMessage.addListener((request) => {
     if (request.action !== 'toggle_full_page_translation') return;

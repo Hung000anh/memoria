@@ -42,6 +42,8 @@ const translations = {
     // Chat
     chat_title: "Memoria AI",
     chat_welcome: "Chào bạn! Mình là AI của Memoria, mình có thể trợ giúp và giải đáp câu hỏi cho bạn.",
+    chat_page_summarize_prompt: "Hãy đọc trang web này bằng công cụ đọc trang và tóm tắt ngắn gọn các ý chính:",
+    chat_page_analyze_prompt: "Hãy đọc trang web này bằng công cụ đọc trang và phân tích chi tiết nội dung, luận điểm, dữ kiện và kết luận:",
     chat_input_placeholder: "Nhập câu hỏi... (Nhấn Enter để gửi)",
     chat_send: "Gửi (Enter)",
     chat_thinking: "Đang suy nghĩ...",
@@ -228,6 +230,8 @@ const translations = {
     // Chat
     chat_title: "Memoria AI",
     chat_welcome: "Hello! I am Memoria AI, here to assist and answer your questions.",
+    chat_page_summarize_prompt: "Read this webpage with the page-reading tool and briefly summarize its key points:",
+    chat_page_analyze_prompt: "Read this webpage with the page-reading tool and provide a detailed analysis of its content, arguments, facts, and conclusions:",
     chat_input_placeholder: "Ask a question... (Press Enter to send)",
     chat_send: "Send (Enter)",
     chat_thinking: "Thinking...",
@@ -414,6 +418,8 @@ const translations = {
     // Chat
     chat_title: "Memoria AI",
     chat_welcome: "你好！我是 Memoria AI，很高兴为你提供帮助。",
+    chat_page_summarize_prompt: "请使用网页读取工具阅读此网页，并简要总结其要点：",
+    chat_page_analyze_prompt: "请使用网页读取工具阅读此网页，并详细分析其内容、论点、事实和结论：",
     chat_input_placeholder: "输入问题... (按 Enter 发送)",
     chat_send: "发送 (Enter)",
     chat_thinking: "思考中...",

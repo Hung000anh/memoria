@@ -21,17 +21,23 @@ try {
 console.log("Memoria background script loaded.");
 
 const FULL_PAGE_TRANSLATE_MENU_ID = 'memoria-translate-full-page';
+const SUMMARIZE_PAGE_MENU_ID = 'memoria-summarize-page';
+const ANALYZE_PAGE_MENU_ID = 'memoria-analyze-page';
 
 function registerTranslationContextMenu() {
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: FULL_PAGE_TRANSLATE_MENU_ID,
-      title: 'Dịch toàn bộ trang web',
-      contexts: ['page']
-    }, () => {
-      if (chrome.runtime.lastError) {
-        console.warn('[Memoria] Không thể tạo context menu:', chrome.runtime.lastError.message);
-      }
+  chrome.storage.local.get({ appLanguage: 'vi' }, data => {
+    const labels = {
+      vi: ['Dịch toàn bộ trang web', 'Tóm tắt trang web', 'Phân tích trang web'],
+      en: ['Translate entire webpage', 'Summarize webpage', 'Analyze webpage'],
+      zh: ['翻译整个网页', '总结网页', '分析网页']
+    }[data.appLanguage] || null;
+    const [translateTitle, summarizeTitle, analyzeTitle] = labels || [
+      'Dịch toàn bộ trang web', 'Tóm tắt trang web', 'Phân tích trang web'
+    ];
+    chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.create({ id: FULL_PAGE_TRANSLATE_MENU_ID, title: translateTitle, contexts: ['page'] });
+      chrome.contextMenus.create({ id: SUMMARIZE_PAGE_MENU_ID, title: summarizeTitle, contexts: ['page'] });
+      chrome.contextMenus.create({ id: ANALYZE_PAGE_MENU_ID, title: analyzeTitle, contexts: ['page'] });
     });
   });
 }
@@ -39,12 +45,36 @@ function registerTranslationContextMenu() {
 chrome.runtime.onInstalled.addListener(registerTranslationContextMenu);
 chrome.runtime.onStartup.addListener(registerTranslationContextMenu);
 registerTranslationContextMenu();
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes.appLanguage) registerTranslationContextMenu();
+});
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== FULL_PAGE_TRANSLATE_MENU_ID || !tab?.id) return;
-  chrome.tabs.sendMessage(tab.id, { action: 'toggle_full_page_translation' }).catch(() => {
-    console.warn('[Memoria] Trang hiện tại không hỗ trợ dịch toàn trang.');
-  });
+  if (!tab?.id) return;
+  if (info.menuItemId === FULL_PAGE_TRANSLATE_MENU_ID) {
+    chrome.tabs.sendMessage(tab.id, { action: 'toggle_full_page_translation' }).catch(() => {
+      console.warn('[Memoria] Trang hiện tại không hỗ trợ dịch toàn trang.');
+    });
+    return;
+  }
+  if (info.menuItemId === SUMMARIZE_PAGE_MENU_ID || info.menuItemId === ANALYZE_PAGE_MENU_ID) {
+    const url = String(tab.url || '').trim();
+    if (!/^https?:\/\//i.test(url)) return;
+    const requestType = info.menuItemId === SUMMARIZE_PAGE_MENU_ID ? 'summarize' : 'analyze';
+    chrome.storage.local.set({
+      autoOpenTab: 'chat',
+      pendingPageAnalysis: {
+        url,
+        title: tab.title || url,
+        requestType,
+        createdAt: Date.now()
+      }
+    }, () => {
+      chrome.sidePanel.open({ windowId: tab.windowId }).catch(error => {
+        console.error('[Memoria] Không thể mở bảng điều khiển:', error);
+      });
+    });
+  }
 });
 
 // Search Google in inactive temporary tabs, then return a small, bounded

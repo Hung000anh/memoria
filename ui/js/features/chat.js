@@ -623,6 +623,28 @@ MỤC TIÊU CỦA BẠN:
     });
   }
 
+  function consumePendingPageAnalysis() {
+    chrome.storage.local.get({ pendingPageAnalysis: null }, (data) => {
+      const pending = data.pendingPageAnalysis;
+      if (!pending?.url || !chatInput) return;
+      chrome.storage.local.remove('pendingPageAnalysis');
+      const translate = key => window.i18n ? window.i18n.t(key) : key;
+      const requestText = pending.requestType === 'summarize'
+        ? `${translate('chat_page_summarize_prompt')} ${pending.url}`
+        : `${translate('chat_page_analyze_prompt')} ${pending.url}`;
+      chatInput.value = requestText;
+      chatInput.dispatchEvent(new Event('input'));
+      handleChat();
+    });
+  }
+
+  consumePendingPageAnalysis();
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local' && changes.pendingPageAnalysis?.newValue) {
+      consumePendingPageAnalysis();
+    }
+  });
+
   // --- Auto Scroll to Bottom on Show ---
   const chatPane = document.getElementById('chat');
 
