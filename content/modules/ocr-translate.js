@@ -387,12 +387,14 @@
           <div style="font-weight:600;color:#ef4444;font-size:13px;margin-bottom:5px;">${t('error')}</div>
           <div style="font-size:13px;color:${c.muted};line-height:1.5;">${safeMsg(message)}</div>
         </div>
-        <button onclick="this.closest('#dauxanh-ocr-popup').remove()"
+        <button id="dauxanh-ocr-error-close-btn"
                 style="background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;flex-shrink:0;padding:0;line-height:1;">
           &times;
         </button>
       </div>
     `;
+    popup.querySelector('#dauxanh-ocr-error-close-btn')
+         .addEventListener('click', () => popup.remove());
     setTimeout(() => { if (popup.isConnected) popup.remove(); }, 8000);
   }
 

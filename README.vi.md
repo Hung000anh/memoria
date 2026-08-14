@@ -29,7 +29,8 @@
   
   ![Web Translation](images/translateweb.gif)
 
-- **Dịch thuật qua màn hình (OCR)**: Nhấn `Alt + S` để chụp một khu vực cụ thể trên màn hình, trích xuất văn bản từ hình ảnh (sử dụng Tesseract.js) và dịch ngay lập tức.
+- **Dịch thuật qua màn hình (OCR)**: Nhấn `Alt + S` để chụp một khu vực cụ thể trên màn hình, trích xuất văn bản từ hình ảnh (sử dụng PaddleOCR PP-OCRv6-tiny chạy offline) và dịch ngay lập tức.
+- **Dịch toàn bộ trang web**: Nhấp chuột phải trên trang và chọn **Dịch toàn bộ trang web** để dịch phần chữ hiển thị trực tiếp, có thể hoàn tác. Chữ trong ảnh chưa được xử lý.
   
   ![OCR Translation](images/ocrweb.gif)
 
@@ -104,7 +105,7 @@ memoria/
 │   └── services/            # Các tác vụ chạy nền (Báo thức, Gọi API Dịch thuật)
 ├── content/
 │   └── modules/             # Các script được tiêm vào trang (Clipboard, Translate, OCR, AllowCopy)
-├── offscreen/               # Tài liệu offscreen để xử lý OCR (Tesseract.js)
+├── offscreen/               # Tài liệu offscreen xử lý OCR offline bằng PaddleOCR
 ├── ui/
 │   ├── sidepanel.html       # Giao diện chính của Side Panel
 │   ├── settings.html        # Trang Cài đặt / Tùy chọn

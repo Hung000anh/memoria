@@ -42,6 +42,8 @@ const translations = {
     // Chat
     chat_title: "Memoria AI",
     chat_welcome: "Chào bạn! Mình là AI của Memoria, mình có thể trợ giúp và giải đáp câu hỏi cho bạn.",
+    chat_page_summarize_prompt: "Hãy đọc trang web này bằng công cụ đọc trang và tóm tắt ngắn gọn các ý chính:",
+    chat_page_analyze_prompt: "Hãy đọc trang web này bằng công cụ đọc trang và phân tích chi tiết nội dung, luận điểm, dữ kiện và kết luận:",
     chat_input_placeholder: "Nhập câu hỏi... (Nhấn Enter để gửi)",
     chat_send: "Gửi (Enter)",
     chat_thinking: "Đang suy nghĩ...",
@@ -162,7 +164,6 @@ const translations = {
     stg_tsl_help: "Chọn ngôn ngữ đích mà bạn muốn dịch sang khi bôi đen văn bản hoặc quét ảnh OCR.",
     stg_tsl_target_label: "Ngôn ngữ đích:",
     stg_tsl_sec_target_label: "Ngôn ngữ đích phụ (nếu gốc trùng đích):",
-    stg_ocr_lang_label: "Ngôn ngữ OCR (Văn bản trong ảnh):",
     stg_tsl_save_btn: "Lưu Cài đặt Dịch",
 
     stg_privacy_title: "Cài đặt Quyền riêng tư & Clipboard",
@@ -229,6 +230,8 @@ const translations = {
     // Chat
     chat_title: "Memoria AI",
     chat_welcome: "Hello! I am Memoria AI, here to assist and answer your questions.",
+    chat_page_summarize_prompt: "Read this webpage with the page-reading tool and briefly summarize its key points:",
+    chat_page_analyze_prompt: "Read this webpage with the page-reading tool and provide a detailed analysis of its content, arguments, facts, and conclusions:",
     chat_input_placeholder: "Ask a question... (Press Enter to send)",
     chat_send: "Send (Enter)",
     chat_thinking: "Thinking...",
@@ -349,7 +352,6 @@ const translations = {
     stg_tsl_help: "Select the target language to translate into when selecting text or performing OCR scan.",
     stg_tsl_target_label: "Target Language:",
     stg_tsl_sec_target_label: "Secondary Target Language (if source matches target):",
-    stg_ocr_lang_label: "OCR Language (Text in image):",
     stg_tsl_save_btn: "Save Translation Settings",
 
     stg_privacy_title: "Privacy & Clipboard Settings",
@@ -416,6 +418,8 @@ const translations = {
     // Chat
     chat_title: "Memoria AI",
     chat_welcome: "你好！我是 Memoria AI，很高兴为你提供帮助。",
+    chat_page_summarize_prompt: "请使用网页读取工具阅读此网页，并简要总结其要点：",
+    chat_page_analyze_prompt: "请使用网页读取工具阅读此网页，并详细分析其内容、论点、事实和结论：",
     chat_input_placeholder: "输入问题... (按 Enter 发送)",
     chat_send: "发送 (Enter)",
     chat_thinking: "思考中...",
@@ -536,7 +540,6 @@ const translations = {
     stg_tsl_help: "选择划词翻译或 OCR 截图翻译时的目标语言。",
     stg_tsl_target_label: "目标语言：",
     stg_tsl_sec_target_label: "备用目标语言 (原语言与目标语言相同时)：",
-    stg_ocr_lang_label: "OCR 语言 (图片中的文字):",
     stg_tsl_save_btn: "保存翻译设置",
 
     stg_copy_title: "解除复制限制设置 (Allow Copy)",

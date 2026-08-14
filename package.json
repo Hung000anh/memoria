@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@paddleocr/paddleocr-js": "^0.4.2",
+    "onnxruntime-web": "^1.27.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  },
+  "scripts": {
+    "build:ocr": "node scripts/build-ocr.mjs"
+  }
+}

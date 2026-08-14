@@ -5,8 +5,8 @@
   <title>Memoria OCR Offscreen</title>
 </head>
 <body>
-  <!-- Tesseract.js chạy ở đây: full extension origin, WASM không bị CSP chặn -->
-  <script src="../lib/tesseract/tesseract.min.js"></script>
-  <script src="ocr.js"></script>
+  <!-- PaddleOCR runs in a sandboxed iframe because OpenCV.js needs eval-like code generation. -->
+  <iframe id="paddleocr-sandbox" src="ocr-sandbox.html" title="PaddleOCR sandbox" hidden></iframe>
+  <script type="module" src="ocr.js"></script>
 </body>
 </html>

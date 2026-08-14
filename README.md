@@ -29,7 +29,8 @@
   
   ![Web Translation](images/translateweb.gif)
 
-- **Screen OCR Translation**: Press `Alt + S` to capture a specific screen area, extract text from images (powered by Tesseract.js Offscreen), and translate it instantly.
+- **Screen OCR Translation**: Press `Alt + S` to capture a specific screen area, extract text from images (powered by offline PaddleOCR PP-OCRv6-tiny in the Offscreen document), and translate it instantly.
+- **Full-page Translation**: Right-click a webpage and choose **Translate entire webpage** to translate visible text in place, with an undo action. Image text is not included yet.
   
   ![OCR Translation](images/ocrweb.gif)
 
@@ -103,7 +104,7 @@ memoria/
 │   └── services/            # Background tasks (Alarms, Translate API)
 ├── content/
 │   └── modules/             # Injected scripts (Clipboard, Translate, OCR, AllowCopy)
-├── offscreen/               # Offscreen document for OCR processing (Tesseract.js)
+├── offscreen/               # Offscreen document for offline PaddleOCR processing
 ├── ui/
 │   ├── sidepanel.html       # Main Side Panel UI
 │   ├── settings.html        # Settings / Options page
