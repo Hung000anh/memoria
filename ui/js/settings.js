@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const newKeyInput = document.getElementById('newKeyInput');
   const addKeyBtn = document.getElementById('addKeyBtn');
+  const fetchKeyBtn = document.getElementById('fetchKeyBtn');
   const keyList = document.getElementById('keyList');
 
   const t = (key) => window.i18n ? window.i18n.t(key) : key;
@@ -93,6 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
         loadKeys();
       });
     });
+  });
+
+  // Lấy key tự động
+  fetchKeyBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: 'https://aistudio.google.com/app/api-keys?close_by_memoria=1' });
   });
 
   // Xóa key
@@ -341,6 +347,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (changes.translateTargetLang || changes.translateSecondaryTargetLang) {
         loadTranslateSettings();
+      }
+      if (changes.geminiKeys) {
+        loadKeys();
       }
     }
   });
