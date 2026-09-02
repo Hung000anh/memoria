@@ -336,11 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
     userAddress: 'bạn',
     customPrompt: ''
   };
-  const chatbotSettingsModal = document.getElementById('chatbotSettingsModal');
-  const openChatbotSettingsBtn = document.getElementById('openChatbotSettingsBtn');
-  const closeChatbotSettingsBtn = document.getElementById('closeChatbotSettingsBtn');
-  const cancelChatbotSettingsBtn = document.getElementById('cancelChatbotSettingsBtn');
   const saveChatbotSettingsBtn = document.getElementById('saveChatbotSettingsBtn');
+  const chatbotSaveMsg = document.getElementById('chatbotSaveMsg');
   const chatbotNameInput = document.getElementById('chatbotNameInput');
   const chatbotSelfPronounInput = document.getElementById('chatbotSelfPronounInput');
   const chatbotUserAddressInput = document.getElementById('chatbotUserAddressInput');
@@ -364,24 +361,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatbotPromptInput) chatbotPromptInput.value = normalized.customPrompt;
   }
 
-  function closeChatbotModal() {
-    if (chatbotSettingsModal) chatbotSettingsModal.hidden = true;
-  }
-
-  if (openChatbotSettingsBtn) {
-    openChatbotSettingsBtn.addEventListener('click', () => {
-      chrome.storage.local.get({ chatbotSettings: DEFAULT_CHATBOT_SETTINGS }, (data) => {
-        populateChatbotForm(data.chatbotSettings);
-        chatbotSettingsModal.hidden = false;
-        chatbotNameInput?.focus();
-      });
-    });
-  }
-  [closeChatbotSettingsBtn, cancelChatbotSettingsBtn].forEach(btn => btn?.addEventListener('click', closeChatbotModal));
-  chatbotSettingsModal?.querySelector('[data-close-chatbot-modal]')?.addEventListener('click', closeChatbotModal);
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && chatbotSettingsModal && !chatbotSettingsModal.hidden) closeChatbotModal();
+  chrome.storage.local.get({ chatbotSettings: DEFAULT_CHATBOT_SETTINGS }, (data) => {
+    populateChatbotForm(data.chatbotSettings);
   });
+
   saveChatbotSettingsBtn?.addEventListener('click', () => {
     const settings = normalizeChatbotSettings({
       botName: chatbotNameInput?.value,
@@ -389,7 +372,11 @@ document.addEventListener('DOMContentLoaded', () => {
       userAddress: chatbotUserAddressInput?.value,
       customPrompt: chatbotPromptInput?.value
     });
-    chrome.storage.local.set({ chatbotSettings: settings }, closeChatbotModal);
+    chrome.storage.local.set({ chatbotSettings: settings }, () => {
+      if (!chatbotSaveMsg) return;
+      chatbotSaveMsg.style.display = 'block';
+      setTimeout(() => chatbotSaveMsg.style.display = 'none', 3000);
+    });
   });
 
   // --- Reminder sound settings ---

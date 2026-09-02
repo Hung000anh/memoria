@@ -79,14 +79,15 @@ class GeminiService {
   }
 
   async callApi(apiKey, messages, systemInstruction, tools) {
-    // Sử dụng gemini-3.1-flash-lite theo yêu cầu
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
+    // Sử dụng gemma-4-31b-it theo yêu cầu
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent?key=${apiKey}`;
     
     const sanitizedMessages = messages.map(msg => {
       let role = msg.role === 'ai' ? 'model' : msg.role;
       const sanitized = { role: role };
       if (msg.parts) {
-        sanitized.parts = msg.parts.filter(part => part && (part.text || part.inlineData || part.functionCall || part.functionResponse));
+        const hasFunctionCall = msg.parts.some(part => part && part.functionCall);
+        sanitized.parts = msg.parts.filter(part => part && (!part.thought || hasFunctionCall) && (part.text || part.inlineData || part.functionCall || part.functionResponse));
       } else if (msg.text) {
         sanitized.parts = [{ text: msg.text }];
       } else {
@@ -94,7 +95,14 @@ class GeminiService {
       }
       return sanitized;
     });
-    const body = { contents: sanitizedMessages };
+    const body = {
+      contents: sanitizedMessages,
+      generationConfig: {
+        thinkingConfig: {
+          thinkingLevel: 'minimal'
+        }
+      }
+    };
     
     if (systemInstruction) {
       body.systemInstruction = {
@@ -121,14 +129,20 @@ class GeminiService {
     }
 
     if (data.candidates && data.candidates[0].content.parts) {
-      const parts = data.candidates[0].content.parts;
+      const rawContent = data.candidates[0].content;
+      const parts = rawContent.parts;
       const functionCallPart = parts.find(p => p.functionCall);
-      const textPart = parts.find(p => p.text);
+      const text = parts
+        .filter(p => p.text && !p.thought)
+        .map(p => p.text)
+        .join('');
       
       return {
-        text: textPart ? textPart.text : '',
+        text,
         functionCall: functionCallPart ? functionCallPart.functionCall : null,
-        rawContent: data.candidates[0].content
+        rawContent: functionCallPart
+          ? rawContent
+          : { ...rawContent, parts: parts.filter(p => !p.thought) }
       };
     }
     throw new Error("Không nhận được phản hồi hợp lệ từ Gemini.");
