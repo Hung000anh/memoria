@@ -10,6 +10,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const removeChatImageBtn = document.getElementById('removeChatImageBtn');
   const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
   let pendingImage = null;
+  const DEFAULT_CHATBOT_SETTINGS = {
+    botName: 'Memoria AI',
+    selfPronoun: 'mình',
+    userAddress: 'bạn',
+    customPrompt: ''
+  };
+  let activeChatbotSettings = { ...DEFAULT_CHATBOT_SETTINGS };
+
+  function normalizeChatbotSettings(value) {
+    const settings = value && typeof value === 'object' ? value : {};
+    return {
+      botName: String(settings.botName || DEFAULT_CHATBOT_SETTINGS.botName).trim().slice(0, 80),
+      selfPronoun: String(settings.selfPronoun || DEFAULT_CHATBOT_SETTINGS.selfPronoun).trim().slice(0, 40),
+      userAddress: String(settings.userAddress || DEFAULT_CHATBOT_SETTINGS.userAddress).trim().slice(0, 40),
+      customPrompt: String(settings.customPrompt || '').trim().slice(0, 4000)
+    };
+  }
+
+  function getWelcomeMessage(settings = activeChatbotSettings) {
+    const template = window.i18n
+      ? window.i18n.t('chat_welcome_personalized')
+      : 'Chào {user}! {self} là {bot}, {self} có thể trợ giúp và giải đáp câu hỏi cho {user}.';
+    return template
+      .replaceAll('{user}', settings.userAddress)
+      .replaceAll('{self}', settings.selfPronoun)
+      .replaceAll('{bot}', settings.botName);
+  }
+
+  function renderWelcomeMessage(settings = activeChatbotSettings) {
+    if (!chatHistory) return;
+    chatHistory.innerHTML = '';
+    const welcomeDiv = document.createElement('div');
+    welcomeDiv.className = 'msg ai-msg';
+    welcomeDiv.textContent = getWelcomeMessage(settings);
+    chatHistory.appendChild(welcomeDiv);
+  }
 
   function scrollChatToBottom() {
     if (!chatHistory) return;
@@ -95,15 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chatHistoryData = [];
     clearPendingImage();
 
-    if (chatHistory) {
-      chatHistory.innerHTML = '';
-
-      const welcomeDiv = document.createElement('div');
-      welcomeDiv.className = 'msg ai-msg';
-      welcomeDiv.setAttribute('data-i18n', 'chat_welcome');
-      welcomeDiv.textContent = window.i18n ? window.i18n.t('chat_welcome') : 'Chào bạn! Mình là AI của Memoria, mình có thể trợ giúp và giải đáp câu hỏi cho bạn.';
-      chatHistory.appendChild(welcomeDiv);
-    }
+    renderWelcomeMessage(activeChatbotSettings);
 
     chrome.storage.local.set({
       chatHistoryData: [],
@@ -115,15 +143,16 @@ document.addEventListener('DOMContentLoaded', () => {
   bindClearChatEvent();
 
   // Load chat state
-  chrome.storage.local.get({ chatHistoryData: [], chatHistoryHTML: '', chatLastUpdated: 0 }, (data) => {
+  chrome.storage.local.get({ chatHistoryData: [], chatHistoryHTML: '', chatLastUpdated: 0, chatbotSettings: DEFAULT_CHATBOT_SETTINGS }, (data) => {
     const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
     const now = Date.now();
+    activeChatbotSettings = normalizeChatbotSettings(data.chatbotSettings);
     
     // Nếu dữ liệu quá 3 ngày tuổi
     if (data.chatLastUpdated && (now - data.chatLastUpdated > THREE_DAYS_MS)) {
       chatHistoryData = [];
       if (chatHistory) {
-         chatHistory.innerHTML = '<div class="msg ai-msg">Chào bạn! Mình là AI của Memoria, mình có thể phân tích dữ liệu bên cạnh để giúp bạn.</div>';
+         renderWelcomeMessage(activeChatbotSettings);
       }
       chrome.storage.local.set({ chatHistoryData: [], chatHistoryHTML: '', chatLastUpdated: now });
     } else {
@@ -156,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
            if (messageImage) renderImage(div, messageImage);
            chatHistory.appendChild(div);
          });
+         if (chatHistoryData.length === 0) renderWelcomeMessage(activeChatbotSettings);
          if (typeof scrollChatToBottom === 'function') scrollChatToBottom();
          else chatHistory.scrollTop = chatHistory.scrollHeight;
       }
@@ -450,7 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
     saveChatState();
 
     // Lấy context
-    chrome.storage.local.get({ notes: [], schedules: [], clipboardHistory: [], weatherCache: null, timeStats: {}, includeClipboardInAIChat: true }, async (data) => {
+    chrome.storage.local.get({ notes: [], schedules: [], clipboardHistory: [], weatherCache: null, timeStats: {}, includeClipboardInAIChat: true, chatbotSettings: DEFAULT_CHATBOT_SETTINGS }, async (data) => {
+      activeChatbotSettings = normalizeChatbotSettings(data.chatbotSettings);
       const clipText = data.includeClipboardInAIChat ? data.clipboardHistory.slice(0, 10).map(c => c.text).join(' | ') : 'Tắt';
       const notesText = data.notes.map(n => `[ID:${n.id}] [${n.title}] ${n.text || n.content || ''}`).join('; ');
       const schText = data.schedules.map(s => `[ID:${s.id}] [${s.date} ${s.time || ''}] ${s.title}: ${s.content || ''} (${s.recurrence})`).join('; ');
@@ -485,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const systemInstruction = `
-Bạn là "Memoria AI". Bạn có thể phân tích văn bản và thực hiện lệnh của người dùng (tạo ghi chú, sự kiện, hẹn giờ, xem thời tiết) thông qua các công cụ.
+Bạn là "${activeChatbotSettings.botName}". Bạn có thể phân tích văn bản và thực hiện lệnh của người dùng (tạo ghi chú, sự kiện, hẹn giờ, xem thời tiết) thông qua các công cụ.
 Thời gian hiện tại: ${new Date().toLocaleString()}
 
 DỮ LIỆU HIỆN TẠI CỦA NGƯỜI DÙNG:
@@ -505,6 +536,14 @@ MỤC TIÊU CỦA BẠN:
 - Trả lời ngắn gọn, thân thiện bằng ngôn ngữ: ${window.i18n ? window.i18n.t('lang_' + window.i18n.currentLang) : 'Tiếng Việt'}.
       `;
 
+      const personalizationInstruction = `
+
+CẤU HÌNH CÁ NHÂN HOÁ (luôn tuân thủ các quy tắc lõi ở trên):
+- Tên của bạn: ${activeChatbotSettings.botName}.
+- Khi trả lời, tự xưng là: ${activeChatbotSettings.selfPronoun}; gọi người dùng là: ${activeChatbotSettings.userAddress}.
+${activeChatbotSettings.customPrompt ? `- Prompt bổ sung của người dùng: ${activeChatbotSettings.customPrompt}` : ''}`;
+      const fullSystemInstruction = `${systemInstruction}${personalizationInstruction}`;
+
       try {
         if (!window.gemini) throw new Error("Tính năng AI chưa được cấu hình.");
 
@@ -514,7 +553,7 @@ MỤC TIÊU CỦA BẠN:
         if (image) userParts.push({ inlineData: image });
         chatHistoryData.push({ role: "user", parts: userParts, text: userText, timestamp: ts });
 
-        let aiResponse = await window.gemini.chat(chatHistoryData, systemInstruction, toolsDef);
+        let aiResponse = await window.gemini.chat(chatHistoryData, fullSystemInstruction, toolsDef);
         
         // Lưu raw content của AI vào lịch sử
         aiResponse.rawContent.timestamp = Date.now();
@@ -548,7 +587,7 @@ MỤC TIÊU CỦA BẠN:
           });
 
           // Gọi AI lần 2 để AI nhận kết quả và nói chuyện
-          const aiResponse2 = await window.gemini.chat(chatHistoryData, systemInstruction, toolsDef);
+          const aiResponse2 = await window.gemini.chat(chatHistoryData, fullSystemInstruction, toolsDef);
           aiResponse2.rawContent.timestamp = Date.now();
           chatHistoryData.push(aiResponse2.rawContent);
           
@@ -570,7 +609,7 @@ MỤC TIÊU CỦA BẠN:
                  }
                }]
              });
-             const aiResponse3 = await window.gemini.chat(chatHistoryData, systemInstruction, toolsDef);
+             const aiResponse3 = await window.gemini.chat(chatHistoryData, fullSystemInstruction, toolsDef);
              aiResponse3.rawContent.timestamp = Date.now();
              chatHistoryData.push(aiResponse3.rawContent);
              if (aiResponse3.text) {
@@ -640,9 +679,9 @@ MỤC TIÊU CỦA BẠN:
 
   consumePendingPageAnalysis();
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === 'local' && changes.pendingPageAnalysis?.newValue) {
-      consumePendingPageAnalysis();
-    }
+    if (areaName !== 'local') return;
+    if (changes.chatbotSettings) activeChatbotSettings = normalizeChatbotSettings(changes.chatbotSettings.newValue);
+    if (changes.pendingPageAnalysis?.newValue) consumePendingPageAnalysis();
   });
 
   // --- Auto Scroll to Bottom on Show ---

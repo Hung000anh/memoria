@@ -1,6 +1,18 @@
 // Lắng nghe trạng thái Dark Mode
 let dauxanhReminderIsDarkMode = false;
 let dauxanhReminderDict = {};
+const DAUXANH_DEFAULT_REMINDER_SOUND_SETTINGS = { mode: 'preset', preset: 'default', customSound: null };
+let dauxanhReminderSoundSettings = { ...DAUXANH_DEFAULT_REMINDER_SOUND_SETTINGS };
+
+function dauxanhNormalizeReminderSoundSettings(value) {
+  const settings = value && typeof value === 'object' ? value : {};
+  const mode = ['off', 'preset', 'custom'].includes(settings.mode) ? settings.mode : 'preset';
+  const preset = ['default', 'chime', 'ping'].includes(settings.preset) ? settings.preset : 'default';
+  const customSound = settings.customSound && typeof settings.customSound.dataUrl === 'string'
+    ? { dataUrl: settings.customSound.dataUrl }
+    : null;
+  return { mode, preset, customSound };
+}
 
 function getReminderT(key, defaultVal) {
   return dauxanhReminderDict[key] || defaultVal;
@@ -8,8 +20,9 @@ function getReminderT(key, defaultVal) {
 
 try {
   if (chrome.storage?.local) {
-    chrome.storage.local.get({ isDarkMode: false, appLanguage: 'vi', appTranslations: null }, (data) => {
+    chrome.storage.local.get({ isDarkMode: false, appLanguage: 'vi', appTranslations: null, reminderSoundSettings: DAUXANH_DEFAULT_REMINDER_SOUND_SETTINGS }, (data) => {
       dauxanhReminderIsDarkMode = data.isDarkMode;
+      dauxanhReminderSoundSettings = dauxanhNormalizeReminderSoundSettings(data.reminderSoundSettings);
       if (data.appTranslations && data.appTranslations[data.appLanguage]) {
         dauxanhReminderDict = data.appTranslations[data.appLanguage];
       }
@@ -17,6 +30,7 @@ try {
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === 'local') {
         if (changes.isDarkMode) dauxanhReminderIsDarkMode = changes.isDarkMode.newValue;
+        if (changes.reminderSoundSettings) dauxanhReminderSoundSettings = dauxanhNormalizeReminderSoundSettings(changes.reminderSoundSettings.newValue);
         if (changes.appLanguage || changes.appTranslations) {
            chrome.storage.local.get({ appLanguage: 'vi', appTranslations: null }, data => {
               if (data.appTranslations && data.appTranslations[data.appLanguage]) {
@@ -30,6 +44,7 @@ try {
 } catch (e) {}
 
 let dauxanhReminderAudioContext = null;
+let dauxanhReminderCustomAudio = null;
 let dauxanhReminderAudioGestureBound = false;
 let dauxanhReminderAudioPlaybackPending = false;
 
@@ -47,7 +62,7 @@ function dauxanhCreateReminderAudioContext() {
   return dauxanhReminderAudioContext;
 }
 
-function dauxanhPlayReminderBeepSequence(ctx) {
+function dauxanhPlayReminderPreset(ctx, preset) {
   function playNote(freq, startTime, duration) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -55,7 +70,7 @@ function dauxanhPlayReminderBeepSequence(ctx) {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    osc.type = 'sine';
+    osc.type = preset === 'chime' ? 'triangle' : 'sine';
     osc.frequency.value = freq;
 
     gain.gain.setValueAtTime(0, startTime);
@@ -68,62 +83,86 @@ function dauxanhPlayReminderBeepSequence(ctx) {
   }
 
   const now = ctx.currentTime;
-  playNote(1046.50, now, 0.4);
-  playNote(1318.51, now + 0.15, 0.6);
+  if (preset === 'chime') {
+    playNote(783.99, now, 0.35);
+    playNote(1046.5, now + 0.18, 0.55);
+  } else if (preset === 'ping') {
+    playNote(880, now, 0.22);
+  } else {
+    playNote(1046.5, now, 0.4);
+    playNote(1318.51, now + 0.15, 0.6);
+  }
+}
+
+function dauxanhPlayCustomReminderSound(dataUrl) {
+  const audio = new Audio(dataUrl);
+  dauxanhReminderCustomAudio?.pause();
+  dauxanhReminderCustomAudio = audio;
+  audio.preload = 'auto';
+  return audio.play();
+}
+
+function dauxanhBindReminderAudioGesture() {
+  if (dauxanhReminderAudioGestureBound) return;
+  dauxanhReminderAudioGestureBound = true;
+
+  const removeGestureListeners = () => {
+    document.removeEventListener('pointerdown', resumeAndPlay, { capture: true });
+    document.removeEventListener('keydown', resumeAndPlay, { capture: true });
+    document.removeEventListener('click', resumeAndPlay, { capture: true });
+    document.removeEventListener('touchstart', resumeAndPlay, { capture: true });
+  };
+
+  const resumeAndPlay = async () => {
+    removeGestureListeners();
+    dauxanhReminderAudioGestureBound = false;
+    if (!dauxanhReminderAudioPlaybackPending) return;
+    dauxanhReminderAudioPlaybackPending = false;
+    const sound = dauxanhReminderSoundSettings;
+    if (sound.mode === 'custom' && sound.customSound?.dataUrl) {
+      try {
+        await dauxanhPlayCustomReminderSound(sound.customSound.dataUrl);
+      } catch (e) {
+        console.log('Memoria custom audio play blocked', e);
+      }
+      return;
+    }
+    const audioCtx = dauxanhCreateReminderAudioContext();
+    if (!audioCtx) return;
+    try {
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      if (audioCtx.state === 'running') dauxanhPlayReminderPreset(audioCtx, sound.preset);
+    } catch (e) {
+      console.log('Memoria audio resume blocked', e);
+    }
+  };
+
+  document.addEventListener('pointerdown', resumeAndPlay, { capture: true, once: true });
+  document.addEventListener('keydown', resumeAndPlay, { capture: true, once: true });
+  document.addEventListener('click', resumeAndPlay, { capture: true, once: true });
+  document.addEventListener('touchstart', resumeAndPlay, { capture: true, once: true });
 }
 
 function dauxanhQueueReminderAudioPlayback() {
-  const ctx = dauxanhCreateReminderAudioContext();
-  if (!ctx) {
+  const sound = dauxanhReminderSoundSettings;
+  if (sound.mode === 'off') return;
+  if (sound.mode === 'custom') {
+    if (!sound.customSound?.dataUrl) return;
+    dauxanhPlayCustomReminderSound(sound.customSound.dataUrl).catch(() => {
+      dauxanhReminderAudioPlaybackPending = true;
+      dauxanhBindReminderAudioGesture();
+    });
     return;
   }
-
+  const ctx = dauxanhCreateReminderAudioContext();
+  if (!ctx) return;
   if (ctx.state === 'running') {
     dauxanhReminderAudioPlaybackPending = false;
-    dauxanhPlayReminderBeepSequence(ctx);
+    dauxanhPlayReminderPreset(ctx, sound.preset);
     return;
   }
-
   dauxanhReminderAudioPlaybackPending = true;
-
-  if (!dauxanhReminderAudioGestureBound) {
-    dauxanhReminderAudioGestureBound = true;
-
-    const removeGestureListeners = () => {
-      document.removeEventListener('pointerdown', resumeAndPlay, { capture: true });
-      document.removeEventListener('keydown', resumeAndPlay, { capture: true });
-      document.removeEventListener('click', resumeAndPlay, { capture: true });
-      document.removeEventListener('touchstart', resumeAndPlay, { capture: true });
-    };
-
-    const resumeAndPlay = async () => {
-      removeGestureListeners();
-
-      const audioCtx = dauxanhCreateReminderAudioContext();
-      if (!audioCtx) {
-        return;
-      }
-
-      try {
-        if (audioCtx.state === 'suspended') {
-          await audioCtx.resume();
-        }
-      } catch (e) {
-        console.log('Memoria audio resume blocked', e);
-        return;
-      }
-
-      if (dauxanhReminderAudioPlaybackPending && audioCtx.state === 'running') {
-        dauxanhReminderAudioPlaybackPending = false;
-        dauxanhPlayReminderBeepSequence(audioCtx);
-      }
-    };
-
-    document.addEventListener('pointerdown', resumeAndPlay, { capture: true, once: true });
-    document.addEventListener('keydown', resumeAndPlay, { capture: true, once: true });
-    document.addEventListener('click', resumeAndPlay, { capture: true, once: true });
-    document.addEventListener('touchstart', resumeAndPlay, { capture: true, once: true });
-  }
+  dauxanhBindReminderAudioGesture();
 }
 
 // Lắng nghe sự kiện từ background để hiển thị Popup nhắc nhở ở góc phải

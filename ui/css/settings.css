@@ -160,3 +160,15 @@ button:hover {
   background-color: var(--danger-bg);
   color: var(--danger);
 }
+
+.settings-stack { display: flex; flex-direction: column; gap: 12px; }
+.btn-secondary { background: transparent; color: var(--text-color); border: 1px solid var(--border-color); }
+.btn-secondary:hover { background: var(--bg-color); }
+.sound-option { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-size: 14px; }
+.sound-option:has(input:checked) { border-color: var(--primary); background: rgba(16, 185, 129, .09); }
+.custom-sound-controls { margin-top: 14px; padding: 12px; border: 1px dashed var(--border-color); border-radius: 6px; }
+.field-label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+.custom-sound-controls input[type="file"], .settings-stack textarea { width: 100%; color: var(--text-color); }
+.settings-stack textarea { padding: 10px 12px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 6px; font: inherit; resize: vertical; }
+.selected-file-name, .save-message { margin-top: 8px; color: var(--primary); font-size: 13px; word-break: break-word; }
+.custom-sound-controls .btn-delete { margin-top: 10px; }
