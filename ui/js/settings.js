@@ -329,7 +329,217 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Chatbot personalization ---
+  const DEFAULT_CHATBOT_SETTINGS = {
+    botName: 'Memoria AI',
+    selfPronoun: 'mình',
+    userAddress: 'bạn',
+    customPrompt: ''
+  };
+  const chatbotSettingsModal = document.getElementById('chatbotSettingsModal');
+  const openChatbotSettingsBtn = document.getElementById('openChatbotSettingsBtn');
+  const closeChatbotSettingsBtn = document.getElementById('closeChatbotSettingsBtn');
+  const cancelChatbotSettingsBtn = document.getElementById('cancelChatbotSettingsBtn');
+  const saveChatbotSettingsBtn = document.getElementById('saveChatbotSettingsBtn');
+  const chatbotNameInput = document.getElementById('chatbotNameInput');
+  const chatbotSelfPronounInput = document.getElementById('chatbotSelfPronounInput');
+  const chatbotUserAddressInput = document.getElementById('chatbotUserAddressInput');
+  const chatbotPromptInput = document.getElementById('chatbotPromptInput');
+
+  function normalizeChatbotSettings(value) {
+    const settings = value && typeof value === 'object' ? value : {};
+    return {
+      botName: String(settings.botName || DEFAULT_CHATBOT_SETTINGS.botName).trim().slice(0, 80),
+      selfPronoun: String(settings.selfPronoun || DEFAULT_CHATBOT_SETTINGS.selfPronoun).trim().slice(0, 40),
+      userAddress: String(settings.userAddress || DEFAULT_CHATBOT_SETTINGS.userAddress).trim().slice(0, 40),
+      customPrompt: String(settings.customPrompt || '').trim().slice(0, 4000)
+    };
+  }
+
+  function populateChatbotForm(settings) {
+    const normalized = normalizeChatbotSettings(settings);
+    if (chatbotNameInput) chatbotNameInput.value = normalized.botName;
+    if (chatbotSelfPronounInput) chatbotSelfPronounInput.value = normalized.selfPronoun;
+    if (chatbotUserAddressInput) chatbotUserAddressInput.value = normalized.userAddress;
+    if (chatbotPromptInput) chatbotPromptInput.value = normalized.customPrompt;
+  }
+
+  function closeChatbotModal() {
+    if (chatbotSettingsModal) chatbotSettingsModal.hidden = true;
+  }
+
+  if (openChatbotSettingsBtn) {
+    openChatbotSettingsBtn.addEventListener('click', () => {
+      chrome.storage.local.get({ chatbotSettings: DEFAULT_CHATBOT_SETTINGS }, (data) => {
+        populateChatbotForm(data.chatbotSettings);
+        chatbotSettingsModal.hidden = false;
+        chatbotNameInput?.focus();
+      });
+    });
+  }
+  [closeChatbotSettingsBtn, cancelChatbotSettingsBtn].forEach(btn => btn?.addEventListener('click', closeChatbotModal));
+  chatbotSettingsModal?.querySelector('[data-close-chatbot-modal]')?.addEventListener('click', closeChatbotModal);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && chatbotSettingsModal && !chatbotSettingsModal.hidden) closeChatbotModal();
+  });
+  saveChatbotSettingsBtn?.addEventListener('click', () => {
+    const settings = normalizeChatbotSettings({
+      botName: chatbotNameInput?.value,
+      selfPronoun: chatbotSelfPronounInput?.value,
+      userAddress: chatbotUserAddressInput?.value,
+      customPrompt: chatbotPromptInput?.value
+    });
+    chrome.storage.local.set({ chatbotSettings: settings }, closeChatbotModal);
+  });
+
+  // --- Reminder sound settings ---
+  const MAX_CUSTOM_SOUND_BYTES = 2 * 1024 * 1024;
+  const DEFAULT_REMINDER_SOUND_SETTINGS = { mode: 'preset', preset: 'default', customSound: null };
+  const customReminderSoundControls = document.getElementById('customReminderSoundControls');
+  const customReminderSoundInput = document.getElementById('customReminderSoundInput');
+  const customReminderSoundName = document.getElementById('customReminderSoundName');
+  const removeCustomReminderSoundBtn = document.getElementById('removeCustomReminderSoundBtn');
+  const previewReminderSoundBtn = document.getElementById('previewReminderSoundBtn');
+  const saveReminderSoundBtn = document.getElementById('saveReminderSoundBtn');
+  const reminderSoundSaveMsg = document.getElementById('reminderSoundSaveMsg');
+  let savedCustomSound = null;
+  let pendingCustomSound = null;
+
+  function normalizeReminderSoundSettings(value) {
+    const settings = value && typeof value === 'object' ? value : {};
+    const mode = ['off', 'preset', 'custom'].includes(settings.mode) ? settings.mode : 'preset';
+    const preset = ['default', 'chime', 'ping'].includes(settings.preset) ? settings.preset : 'default';
+    const customSound = settings.customSound && typeof settings.customSound.dataUrl === 'string'
+      ? { name: String(settings.customSound.name || 'custom-sound').slice(0, 160), dataUrl: settings.customSound.dataUrl }
+      : null;
+    return { mode, preset, customSound };
+  }
+
+  function selectedSoundMode() {
+    return document.querySelector('input[name="reminderSoundMode"]:checked')?.value || 'default';
+  }
+
+  function updateCustomSoundUI() {
+    const isCustom = selectedSoundMode() === 'custom';
+    if (customReminderSoundControls) customReminderSoundControls.hidden = !isCustom;
+    const sound = pendingCustomSound || savedCustomSound;
+    if (customReminderSoundName) {
+      customReminderSoundName.hidden = !sound;
+      customReminderSoundName.textContent = sound ? sound.name : '';
+    }
+    if (removeCustomReminderSoundBtn) removeCustomReminderSoundBtn.hidden = !sound;
+  }
+
+  function loadReminderSoundSettings() {
+    chrome.storage.local.get({ reminderSoundSettings: DEFAULT_REMINDER_SOUND_SETTINGS }, (data) => {
+      const settings = normalizeReminderSoundSettings(data.reminderSoundSettings);
+      savedCustomSound = settings.customSound;
+      pendingCustomSound = null;
+      const radioValue = settings.mode === 'off' ? 'off' : settings.mode === 'custom' ? 'custom' : settings.preset;
+      const radio = document.querySelector(`input[name="reminderSoundMode"][value="${radioValue}"]`);
+      if (radio) radio.checked = true;
+      updateCustomSoundUI();
+    });
+  }
+
+  function playPresetSound(preset) {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) return;
+    const ctx = new AudioContextCtor();
+    const notes = preset === 'chime'
+      ? [[783.99, 0, 0.35], [1046.5, 0.18, 0.55]]
+      : preset === 'ping'
+        ? [[880, 0, 0.22]]
+        : [[1046.5, 0, 0.4], [1318.51, 0.15, 0.6]];
+    notes.forEach(([frequency, offset, duration]) => {
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.type = preset === 'chime' ? 'triangle' : 'sine';
+      oscillator.frequency.value = frequency;
+      const start = ctx.currentTime + offset;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.2, start + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 0.02);
+    });
+    setTimeout(() => ctx.close(), 1200);
+  }
+
+  function previewReminderSound() {
+    const mode = selectedSoundMode();
+    if (mode === 'off') return;
+    if (mode === 'custom') {
+      const sound = pendingCustomSound || savedCustomSound;
+      if (!sound) return alert(t('stg_sound_custom_required'));
+      const audio = new Audio(sound.dataUrl);
+      audio.play().catch(() => alert(t('stg_sound_preview_error')));
+      return;
+    }
+    playPresetSound(mode);
+  }
+
+  function isSupportedAudioFile(file) {
+    const type = String(file.type || '').toLowerCase();
+    return ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg'].includes(type) || /\.(mp3|wav|ogg)$/i.test(file.name);
+  }
+
+  document.querySelectorAll('input[name="reminderSoundMode"]').forEach(radio => {
+    radio.addEventListener('change', updateCustomSoundUI);
+  });
+  customReminderSoundInput?.addEventListener('change', () => {
+    const file = customReminderSoundInput.files?.[0];
+    if (!file) return;
+    if (!isSupportedAudioFile(file)) {
+      customReminderSoundInput.value = '';
+      return alert(t('stg_sound_invalid_file'));
+    }
+    if (file.size > MAX_CUSTOM_SOUND_BYTES) {
+      customReminderSoundInput.value = '';
+      return alert(t('stg_sound_file_too_large'));
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      pendingCustomSound = { name: file.name, dataUrl: String(reader.result || '') };
+      const customRadio = document.querySelector('input[name="reminderSoundMode"][value="custom"]');
+      if (customRadio) customRadio.checked = true;
+      updateCustomSoundUI();
+    };
+    reader.onerror = () => alert(t('stg_sound_file_read_error'));
+    reader.readAsDataURL(file);
+  });
+  removeCustomReminderSoundBtn?.addEventListener('click', () => {
+    savedCustomSound = null;
+    pendingCustomSound = null;
+    if (customReminderSoundInput) customReminderSoundInput.value = '';
+    updateCustomSoundUI();
+  });
+  previewReminderSoundBtn?.addEventListener('click', previewReminderSound);
+  saveReminderSoundBtn?.addEventListener('click', () => {
+    const selected = selectedSoundMode();
+    const sound = pendingCustomSound || savedCustomSound;
+    if (selected === 'custom' && !sound) return alert(t('stg_sound_custom_required'));
+    const settings = selected === 'off'
+      ? { mode: 'off', preset: 'default', customSound: sound }
+      : selected === 'custom'
+        ? { mode: 'custom', preset: 'default', customSound: sound }
+        : { mode: 'preset', preset: selected, customSound: sound };
+    chrome.storage.local.set({ reminderSoundSettings: settings }, () => {
+      if (chrome.runtime.lastError) return alert(chrome.runtime.lastError.message);
+      savedCustomSound = sound;
+      pendingCustomSound = null;
+      if (reminderSoundSaveMsg) {
+        reminderSoundSaveMsg.hidden = false;
+        setTimeout(() => reminderSoundSaveMsg.hidden = true, 3000);
+      }
+      updateCustomSoundUI();
+    });
+  });
+
   loadTranslateSettings();
+  loadReminderSoundSettings();
   loadNavSettings();
 
   // Lắng nghe thay đổi ngôn ngữ hoặc thay đổi cấu hình dịch thuật để re-render dynamic strings & select values

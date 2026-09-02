@@ -105,6 +105,36 @@
     </div>
 
     <div class="card">
+      <h2 data-i18n="stg_chatbot_title">Điều chỉnh chatbot</h2>
+      <p class="help-text" style="margin-bottom:12px;" data-i18n="stg_chatbot_help">Cá nhân hoá tên, cách xưng hô và hướng dẫn trả lời của chatbot.</p>
+      <button id="openChatbotSettingsBtn" type="button" style="width:100%;" data-i18n="stg_chatbot_edit_btn">Điều chỉnh chatbot</button>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="stg_sound_title">Âm thanh lời nhắc</h2>
+      <p class="help-text" style="margin-bottom:12px;" data-i18n="stg_sound_help">Chọn âm thanh phát khi hẹn giờ có lời nhắc.</p>
+      <div class="settings-stack" id="reminderSoundOptions">
+        <label class="sound-option"><input type="radio" name="reminderSoundMode" value="off"> <span data-i18n="stg_sound_off">Tắt âm thanh</span></label>
+        <label class="sound-option"><input type="radio" name="reminderSoundMode" value="default"> <span data-i18n="stg_sound_default">Mặc định</span></label>
+        <label class="sound-option"><input type="radio" name="reminderSoundMode" value="chime"> <span data-i18n="stg_sound_chime">Chuông</span></label>
+        <label class="sound-option"><input type="radio" name="reminderSoundMode" value="ping"> <span data-i18n="stg_sound_ping">Ting</span></label>
+        <label class="sound-option"><input type="radio" name="reminderSoundMode" value="custom"> <span data-i18n="stg_sound_custom">Âm thanh của bạn</span></label>
+      </div>
+      <div id="customReminderSoundControls" class="custom-sound-controls" hidden>
+        <label for="customReminderSoundInput" class="field-label" data-i18n="stg_sound_upload_label">Tải tệp âm thanh</label>
+        <input id="customReminderSoundInput" type="file" accept="audio/mpeg,audio/wav,audio/ogg,.mp3,.wav,.ogg">
+        <p class="help-text" data-i18n="stg_sound_upload_help">Hỗ trợ MP3, WAV hoặc OGG, tối đa 2 MB.</p>
+        <p id="customReminderSoundName" class="selected-file-name" hidden></p>
+        <button id="removeCustomReminderSoundBtn" type="button" class="btn-delete" hidden data-i18n="stg_sound_remove_custom">Xoá âm thanh riêng</button>
+      </div>
+      <div class="settings-actions">
+        <button id="previewReminderSoundBtn" type="button" class="btn-secondary" data-i18n="stg_sound_preview">Nghe thử</button>
+        <button id="saveReminderSoundBtn" type="button" data-i18n="stg_sound_save">Lưu âm thanh</button>
+      </div>
+      <p id="reminderSoundSaveMsg" class="save-message" hidden data-i18n="stg_save_success">Đã lưu thành công!</p>
+    </div>
+
+    <div class="card">
       <h2 data-i18n="stg_tsl_title">Cài đặt Dịch thuật</h2>
       <p class="help-text" style="margin-bottom:12px;" data-i18n="stg_tsl_help">Chọn ngôn ngữ đích mà bạn muốn dịch sang khi bôi đen văn bản hoặc quét ảnh OCR.</p>
 
@@ -192,6 +222,38 @@
         <button id="saveNavSettingsBtn" style="flex: 1;" data-i18n="stg_nav_save_btn">Lưu Cài đặt Menu</button>
       </div>
       <p id="navSaveMsg" style="color: var(--primary); font-size: 13px; margin-top: 8px; text-align: center; display: none;" data-i18n="stg_save_success">Đã lưu thành công!</p>
+    </div>
+  </div>
+  <div id="chatbotSettingsModal" class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="chatbotSettingsModalTitle" hidden>
+    <div class="settings-modal-backdrop" data-close-chatbot-modal></div>
+    <div class="settings-modal-content">
+      <div class="settings-modal-header">
+        <h2 id="chatbotSettingsModalTitle" data-i18n="stg_chatbot_modal_title">Điều chỉnh chatbot</h2>
+        <button id="closeChatbotSettingsBtn" type="button" class="icon-close" aria-label="Close">×</button>
+      </div>
+      <div class="settings-stack">
+        <div>
+          <label class="field-label" for="chatbotNameInput" data-i18n="stg_chatbot_name_label">Tên chatbot</label>
+          <input id="chatbotNameInput" type="text" maxlength="80" data-i18n-placeholder="stg_chatbot_name_placeholder" placeholder="Memoria AI">
+        </div>
+        <div>
+          <label class="field-label" for="chatbotSelfPronounInput" data-i18n="stg_chatbot_self_label">Chatbot tự xưng</label>
+          <input id="chatbotSelfPronounInput" type="text" maxlength="40" data-i18n-placeholder="stg_chatbot_self_placeholder" placeholder="mình">
+        </div>
+        <div>
+          <label class="field-label" for="chatbotUserAddressInput" data-i18n="stg_chatbot_user_label">Chatbot gọi bạn là</label>
+          <input id="chatbotUserAddressInput" type="text" maxlength="40" data-i18n-placeholder="stg_chatbot_user_placeholder" placeholder="bạn">
+        </div>
+        <div>
+          <label class="field-label" for="chatbotPromptInput" data-i18n="stg_chatbot_prompt_label">Prompt bổ sung</label>
+          <textarea id="chatbotPromptInput" maxlength="4000" rows="7" data-i18n-placeholder="stg_chatbot_prompt_placeholder" placeholder="Ví dụ: Trả lời ngắn gọn, ưu tiên ví dụ thực tế."></textarea>
+          <p class="help-text" data-i18n="stg_chatbot_prompt_help">Hướng dẫn này được thêm vào quy tắc có sẵn của Memoria.</p>
+        </div>
+      </div>
+      <div class="settings-actions modal-actions">
+        <button id="cancelChatbotSettingsBtn" type="button" class="btn-secondary" data-i18n="btn_cancel">Huỷ</button>
+        <button id="saveChatbotSettingsBtn" type="button" data-i18n="stg_chatbot_save_btn">Lưu thay đổi</button>
+      </div>
     </div>
   </div>
   <script src="js/core/theme.js"></script>
