@@ -67,6 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let chatHistoryData = [];
 
+  function markProactiveMessagesRead() {
+    chrome.storage.local.set({ proactiveUnreadCount: 0 });
+  }
+
   function renderImage(container, image) {
     if (!image || !image.data || !image.mimeType) return;
     const img = document.createElement('img');
@@ -195,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear badge khi khởi động nếu đang ở tab chat
     const chatPaneInit = document.getElementById('chat');
     if (chatPaneInit && chatPaneInit.classList.contains('active')) {
-      chrome.action.setBadgeText({ text: '' });
+      markProactiveMessagesRead();
     }
   });
 
@@ -225,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // Nếu đang xem tab chat thì clear badge
           const chatView = document.getElementById('chat');
           if (chatView && chatView.classList.contains('active')) {
-             chrome.action.setBadgeText({ text: '' });
+             markProactiveMessagesRead();
           }
         }
       });
@@ -694,7 +698,7 @@ ${activeChatbotSettings.customPrompt ? `- Prompt bổ sung của người dùng:
     const paneObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.target.classList.contains('active')) {
-          chrome.action.setBadgeText({ text: '' });
+          markProactiveMessagesRead();
           scrollChatToBottom();
           setTimeout(scrollChatToBottom, 50);
           setTimeout(scrollChatToBottom, 200);

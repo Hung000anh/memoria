@@ -39,8 +39,8 @@ async function ensureOffscreenDocument() {
   try {
     await chrome.offscreen.createDocument({
       url: OCR_OFFSCREEN_URL,
-      reasons: ['WORKERS'],
-      justification: 'Chạy PaddleOCR PP-OCRv6 WASM để nhận dạng chữ trong ảnh'
+      reasons: ['WORKERS', 'AUDIO_PLAYBACK'],
+      justification: 'Chạy PaddleOCR PP-OCRv6 WASM và phát âm thanh thông báo cho tin nhắn chủ động'
     });
     console.log('[OCR-BG] Offscreen document đã tạo thành công.');
   } catch (e) {

@@ -112,8 +112,54 @@ async function recognizeInSandbox(request) {
   });
 }
 
+function playPresetSound(preset) {
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextCtor) throw new Error('Trình duyệt không hỗ trợ AudioContext');
+  const context = new AudioContextCtor();
+  const notes = preset === 'chime'
+    ? [[783.99, 0, 0.35], [1046.5, 0.18, 0.55]]
+    : preset === 'ping'
+      ? [[880, 0, 0.22]]
+      : [[1046.5, 0, 0.4], [1318.51, 0.15, 0.6]];
+  notes.forEach(([frequency, offset, duration]) => {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.type = preset === 'chime' ? 'triangle' : 'sine';
+    oscillator.frequency.value = frequency;
+    const start = context.currentTime + offset;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.2, start + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.02);
+  });
+  setTimeout(() => context.close(), 1200);
+}
+
+async function playNotificationSound(sound) {
+  if (sound?.mode === 'off') return;
+  if (sound?.mode === 'custom') {
+    if (!sound.customSound?.dataUrl) throw new Error('Không có âm thanh riêng để phát');
+    const audio = new Audio(sound.customSound.dataUrl);
+    await audio.play();
+    return;
+  }
+  playPresetSound(sound?.preset || 'default');
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.target !== 'offscreen-ocr' || !['do_ocr', 'do_ocr_batch'].includes(request.action)) return false;
+  if (request.target !== 'offscreen-ocr') return false;
+
+  if (request.action === 'play_sound') {
+    playNotificationSound(request.sound)
+      .then(() => sendResponse({ success: true }))
+      .catch(error => sendResponse({ success: false, error: error.message || String(error) }));
+    return true;
+  }
+
+  if (!['do_ocr', 'do_ocr_batch'].includes(request.action)) return false;
 
   (async () => {
     try {

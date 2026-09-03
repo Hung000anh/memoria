@@ -334,7 +334,10 @@ document.addEventListener('DOMContentLoaded', () => {
     botName: 'Memoria AI',
     selfPronoun: 'mình',
     userAddress: 'bạn',
-    customPrompt: ''
+    customPrompt: '',
+    proactiveMessagesEnabled: false,
+    proactiveIntervalMinutes: 30,
+    proactiveSound: 'default'
   };
   const saveChatbotSettingsBtn = document.getElementById('saveChatbotSettingsBtn');
   const chatbotSaveMsg = document.getElementById('chatbotSaveMsg');
@@ -342,6 +345,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatbotSelfPronounInput = document.getElementById('chatbotSelfPronounInput');
   const chatbotUserAddressInput = document.getElementById('chatbotUserAddressInput');
   const chatbotPromptInput = document.getElementById('chatbotPromptInput');
+  const proactiveMessagesEnabled = document.getElementById('proactiveMessagesEnabled');
+  const proactiveIntervalMinutes = document.getElementById('proactiveIntervalMinutes');
+  const proactiveIntervalGroup = document.getElementById('proactiveIntervalGroup');
+  const proactiveSoundGroup = document.getElementById('proactiveSoundGroup');
+  const previewProactiveSoundBtn = document.getElementById('previewProactiveSoundBtn');
 
   function normalizeChatbotSettings(value) {
     const settings = value && typeof value === 'object' ? value : {};
@@ -349,8 +357,25 @@ document.addEventListener('DOMContentLoaded', () => {
       botName: String(settings.botName || DEFAULT_CHATBOT_SETTINGS.botName).trim().slice(0, 80),
       selfPronoun: String(settings.selfPronoun || DEFAULT_CHATBOT_SETTINGS.selfPronoun).trim().slice(0, 40),
       userAddress: String(settings.userAddress || DEFAULT_CHATBOT_SETTINGS.userAddress).trim().slice(0, 40),
-      customPrompt: String(settings.customPrompt || '').trim().slice(0, 4000)
+      customPrompt: String(settings.customPrompt || '').trim().slice(0, 4000),
+      proactiveMessagesEnabled: settings.proactiveMessagesEnabled === true,
+      proactiveIntervalMinutes: [15, 30, 60, 120, 240].includes(Number(settings.proactiveIntervalMinutes))
+        ? Number(settings.proactiveIntervalMinutes)
+        : DEFAULT_CHATBOT_SETTINGS.proactiveIntervalMinutes,
+      proactiveSound: ['off', 'default', 'chime', 'ping', 'reminder'].includes(settings.proactiveSound)
+        ? settings.proactiveSound
+        : DEFAULT_CHATBOT_SETTINGS.proactiveSound
     };
+  }
+
+  function updateProactiveChatSettingsUI() {
+    const isEnabled = proactiveMessagesEnabled?.checked === true;
+    if (proactiveIntervalMinutes) proactiveIntervalMinutes.disabled = !isEnabled;
+    if (proactiveIntervalGroup) proactiveIntervalGroup.style.opacity = isEnabled ? '1' : '0.55';
+    if (proactiveSoundGroup) {
+      proactiveSoundGroup.style.opacity = isEnabled ? '1' : '0.55';
+      proactiveSoundGroup.querySelectorAll('input').forEach(input => input.disabled = !isEnabled);
+    }
   }
 
   function populateChatbotForm(settings) {
@@ -359,18 +384,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatbotSelfPronounInput) chatbotSelfPronounInput.value = normalized.selfPronoun;
     if (chatbotUserAddressInput) chatbotUserAddressInput.value = normalized.userAddress;
     if (chatbotPromptInput) chatbotPromptInput.value = normalized.customPrompt;
+    if (proactiveMessagesEnabled) proactiveMessagesEnabled.checked = normalized.proactiveMessagesEnabled;
+    if (proactiveIntervalMinutes) proactiveIntervalMinutes.value = String(normalized.proactiveIntervalMinutes);
+    const proactiveSound = document.querySelector(`input[name="proactiveSound"][value="${normalized.proactiveSound}"]`);
+    if (proactiveSound) proactiveSound.checked = true;
+    updateProactiveChatSettingsUI();
   }
 
   chrome.storage.local.get({ chatbotSettings: DEFAULT_CHATBOT_SETTINGS }, (data) => {
     populateChatbotForm(data.chatbotSettings);
   });
+  proactiveMessagesEnabled?.addEventListener('change', updateProactiveChatSettingsUI);
 
   saveChatbotSettingsBtn?.addEventListener('click', () => {
     const settings = normalizeChatbotSettings({
       botName: chatbotNameInput?.value,
       selfPronoun: chatbotSelfPronounInput?.value,
       userAddress: chatbotUserAddressInput?.value,
-      customPrompt: chatbotPromptInput?.value
+      customPrompt: chatbotPromptInput?.value,
+      proactiveMessagesEnabled: proactiveMessagesEnabled?.checked === true,
+      proactiveIntervalMinutes: proactiveIntervalMinutes?.value,
+      proactiveSound: document.querySelector('input[name="proactiveSound"]:checked')?.value
     });
     chrome.storage.local.set({ chatbotSettings: settings }, () => {
       if (!chatbotSaveMsg) return;
@@ -468,6 +502,16 @@ document.addEventListener('DOMContentLoaded', () => {
     playPresetSound(mode);
   }
 
+  function previewProactiveSound() {
+    const mode = document.querySelector('input[name="proactiveSound"]:checked')?.value || 'default';
+    if (mode === 'off') return;
+    if (mode !== 'reminder') {
+      playPresetSound(mode);
+      return;
+    }
+    previewReminderSound();
+  }
+
   function isSupportedAudioFile(file) {
     const type = String(file.type || '').toLowerCase();
     return ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg'].includes(type) || /\.(mp3|wav|ogg)$/i.test(file.name);
@@ -504,6 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCustomSoundUI();
   });
   previewReminderSoundBtn?.addEventListener('click', previewReminderSound);
+  previewProactiveSoundBtn?.addEventListener('click', previewProactiveSound);
   saveReminderSoundBtn?.addEventListener('click', () => {
     const selected = selectedSoundMode();
     const sound = pendingCustomSound || savedCustomSound;

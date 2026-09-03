@@ -12,7 +12,8 @@ try {
   importScripts(
     'background/services/translate.js',
     'background/services/ocr.js',
-    'background/services/alarms.js'
+    'background/services/alarms.js',
+    'background/services/proactive-chat.js'
   );
 } catch (e) {
   console.error("Failed to load background services:", e);
