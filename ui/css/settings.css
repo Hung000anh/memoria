@@ -170,5 +170,7 @@ button:hover {
 .field-label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
 .custom-sound-controls input[type="file"], .settings-stack textarea { width: 100%; color: var(--text-color); }
 .settings-stack textarea { padding: 10px 12px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 6px; font: inherit; resize: vertical; }
+.settings-stack select { width: 100%; padding: 10px 12px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; font: inherit; }
+.settings-stack select:disabled { cursor: not-allowed; }
 .selected-file-name, .save-message { margin-top: 8px; color: var(--primary); font-size: 13px; word-break: break-word; }
 .custom-sound-controls .btn-delete { margin-top: 10px; }
